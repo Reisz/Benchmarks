@@ -22,8 +22,8 @@ BENCHES  := $(addsuffix .bm, $(FILES))
 
 .PHONY: default bench clean
 
-default: bencher $(BINARIES)
-bench: bencher $(BENCHES)
+default: $(BINARIES)
+bench: $(BENCHES)
 
 # Benchmark settings
 NBODY    := 50000000
@@ -54,20 +54,20 @@ bencher: bencher.c
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 # Run benchmarks
-nbody/%.bm: nbody/%.run .FORCE
 	./bencher $@ $< $(NBODY)
+nbody/%.bm: nbody/%.run bencher .FORCE
 
-revcomp/%.bm: revcomp/%.run .FORCE
 	./bencher -i $(REVCOMP) $@ $< 0
+revcomp/%.bm: revcomp/%.run bencher .FORCE
 
-fasta/%.bm: fasta/%.run .FORCE
 	./bencher $@ $< $(FASTA)
+fasta/%.bm: fasta/%.run bencher .FORCE
 
-trees/%.bm: trees/%.run .FORCE
 	./bencher $@ $< $(TREES)
+trees/%.bm: trees/%.run bencher .FORCE
 
-spectral/%.bm: spectral/%.run .FORCE
 	./bencher $@ $< $(SPECTRAL)
+spectral/%.bm: spectral/%.run bencher .FORCE
 
 # Clean up
 clean:
