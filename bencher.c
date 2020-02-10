@@ -38,7 +38,7 @@ char *read_all(const char* filename, size_t *length_out) {
 		goto end; // close file & return
 	}
 
-	// Attempt to read the file to memory	
+	// Attempt to read the file to memory
 	size_t read = fread(buffer, sizeof(char), length, f);
 	if (read != length) {
 		perror("Wrong length");
@@ -66,7 +66,7 @@ void run_bench(const char* input, size_t input_len, FILE* outfile, char** argv) 
 	#define PARENT_IN 2
 	#define CHILD_OUT 3
 	int pipes[4];
-	
+
 	// Create first set of pipes
 	if (pipe(&pipes[0])) {
 		perror("pipe child -> parent");
@@ -97,16 +97,18 @@ void run_bench(const char* input, size_t input_len, FILE* outfile, char** argv) 
 		perror(argv[0]);
 		exit(EXIT_FAILURE);
 	}
-	
+
 	// Close wrong sides of pipes
 	close(pipes[CHILD_IN]);
 	close(pipes[CHILD_OUT]);
 
 	// Write to the pipe if applicable
-	if (input) {
-		write(pipes[PARENT_OUT], input, input_len + 1);
-		printf("%s\n", input);
-	}
+	if (input)
+		write(pipes[PARENT_OUT], input, input_len);
+
+	// Close after writing
+	close(pipes[PARENT_OUT]);
+
 	// Wait for process to end
 	int status;
 	struct rusage rusage;
@@ -115,6 +117,11 @@ void run_bench(const char* input, size_t input_len, FILE* outfile, char** argv) 
 	// Store end time
 	struct timespec elapsed;
 	clock_gettime(CLOCK, &elapsed);
+
+	// TODO check output?
+
+	// Close pipe after reading
+	close(pipes[PARENT_IN]);
 
 	// Subtract times, manually carry
 	elapsed.tv_sec -= start.tv_sec;
@@ -135,9 +142,9 @@ int main(int argc, char** argv) {
 	++argv;
 
 	// Need at least two args to check for "-i" "<input-file>"
-	if (argc < 2) 
+	if (argc < 2)
 		return usage_error();
-	
+
 	// Optional argument "<input-file>" after "-i"
 	size_t input_len;
 	char* input = 0;
@@ -151,7 +158,7 @@ int main(int argc, char** argv) {
 	// Need at least two args for "<output-file>" and "<binary>"
 	if (argc < 2)
 		return usage_error();
-	
+
 	// Take "<output-file>" from argv, open as append
 	FILE* outfile = fopen(argv[0], "a");
 	if (!outfile) {
@@ -159,7 +166,7 @@ int main(int argc, char** argv) {
 		return EXIT_FAILURE;
 	}
 	++argv;
-	
+
 	// Write header for current run
 	fprintf(outfile, "%s\n" CSV_HEADER, argv[0]);
 
