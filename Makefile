@@ -31,12 +31,15 @@ REVCOMP  := revcomp-input100000000.txt # TODO bigger input
 FASTA    := 25000000
 TREES    := 21
 SPECTRAL := 5500
+BM_OUT = $@
 
 bench-test: NBODY    := 1000
 bench-test: REVCOMP  := revcomp-input100000000.txt
 bench-test: FASTA    := 1000
 bench-test: TREES    := 10
 bench-test: SPECTRAL := 100
+
+bench-test: BM_OUT := -
 bench-test: bench
 
 # Always run benchmarks
@@ -54,20 +57,20 @@ bencher: bencher.c
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 # Run benchmarks
-	./bencher $@ $< $(NBODY)
 nbody/%.bm: nbody/%.run bencher .FORCE
+	./bencher $(BM_OUT) $< $(NBODY)
 
-	./bencher -i $(REVCOMP) $@ $< 0
 revcomp/%.bm: revcomp/%.run bencher .FORCE
+	./bencher -i $(REVCOMP) $(BM_OUT) $< 0
 
-	./bencher $@ $< $(FASTA)
 fasta/%.bm: fasta/%.run bencher .FORCE
+	./bencher $(BM_OUT) $< $(FASTA)
 
-	./bencher $@ $< $(TREES)
 trees/%.bm: trees/%.run bencher .FORCE
+	./bencher $(BM_OUT) $< $(TREES)
 
-	./bencher $@ $< $(SPECTRAL)
 spectral/%.bm: spectral/%.run bencher .FORCE
+	./bencher $(BM_OUT) $< $(SPECTRAL)
 
 # Clean up
 clean:
