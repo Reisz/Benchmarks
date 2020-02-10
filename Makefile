@@ -32,6 +32,13 @@ FASTA    := 25000000
 TREES    := 21
 SPECTRAL := 5500
 
+bench-test: NBODY    := 1000
+bench-test: REVCOMP  := revcomp-input100000000.txt
+bench-test: FASTA    := 1000
+bench-test: TREES    := 10
+bench-test: SPECTRAL := 100
+bench-test: bench
+
 # Always run benchmarks
 .FORCE:
 
