@@ -9,6 +9,9 @@
 #include <sys/resource.h>
 #include <sys/wait.h>
 
+#define STRINGIFY_HELPER(arg) #arg
+#define STRINGIFY(arg) STRINGIFY_HELPER(arg)
+
 int usage_error() {
 	fprintf(stderr, "Argument format is [-i <input-file>] <output-file> <binary> [<binary arguments>...]i\n");
 	return EXIT_FAILURE;
@@ -132,8 +135,13 @@ void run_bench(const char* input, size_t input_len, FILE* outfile, char** argv) 
 	elapsed.tv_nsec -= start.tv_nsec;
 
 	// Write information to file
-	#define CSV_HEADER "\n"
-	printf("%ld\n", elapsed.tv_sec);
+	#define CSV_HEADER "time (seconds)\n"
+
+	// Get decimal places for elapsed
+	char elapsed_decimals[10];
+	snprintf(elapsed_decimals, 10, "%09ld", elapsed.tv_nsec);
+
+	fprintf(outfile, "%ld.%.3s\n", elapsed.tv_sec, elapsed_decimals);
 }
 
 int main(int argc, char** argv) {
@@ -159,20 +167,32 @@ int main(int argc, char** argv) {
 	if (argc < 2)
 		return usage_error();
 
-	// Take "<output-file>" from argv, open as append
-	FILE* outfile = fopen(argv[0], "a");
-	if (!outfile) {
-		perror(argv[0]);
-		return EXIT_FAILURE;
+	// Take "<output-file>" from argv, redirect to stdout or open as append
+	FILE* outfile;
+	if (strncmp(argv[0], "-", 1) == 0) {
+		outfile = stdout;
+	} else {
+		outfile = fopen(argv[0], "a");
+		if (!outfile) {
+			perror(argv[0]);
+			return EXIT_FAILURE;
+		}
 	}
 	++argv;
 
 	// Write header for current run
 	fprintf(outfile, "%s\n" CSV_HEADER, argv[0]);
 
+	#define NUM_ITERS 5
+
+	const char *num_iters_str = STRINGIFY(NUM_ITERS);
+	const int num_iters_len = strlen(num_iters_str);
+
 	// Run five timing iterations
-	for (int i = 0; i < 5; ++i)
+	for (int i = 0; i < NUM_ITERS; ++i) {
+		printf("Iteration %0*d/%s\n", num_iters_len, i + 1, num_iters_str);
 		run_bench(input, input_len, outfile, argv);
+	}
 
 	return EXIT_SUCCESS;
 }
