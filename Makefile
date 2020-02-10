@@ -25,6 +25,13 @@ BENCHES  := $(addsuffix .bm, $(FILES))
 default: bencher $(BINARIES)
 bench: bencher $(BENCHES)
 
+# Benchmark settings
+NBODY    := 50000000
+REVCOMP  := revcomp-input100000000.txt # TODO bigger input
+FASTA    := 25000000
+TREES    := 21
+SPECTRAL := 5500
+
 # Always run benchmarks
 .FORCE:
 
@@ -38,13 +45,22 @@ bencher: bencher.c
 
 %.cpp.run: %.cpp
 	$(CXX) $(CXXFLAGS) $< -o $@
- 
+
 # Run benchmarks
 nbody/%.bm: nbody/%.run .FORCE
-	./bencher $@ $< 1000
+	./bencher $@ $< $(NBODY)
 
 revcomp/%.bm: revcomp/%.run .FORCE
-	./bencher -i revcomp-input100000000.txt $@ $< 0
+	./bencher -i $(REVCOMP) $@ $< 0
+
+fasta/%.bm: fasta/%.run .FORCE
+	./bencher $@ $< $(FASTA)
+
+trees/%.bm: trees/%.run .FORCE
+	./bencher $@ $< $(TREES)
+
+spectral/%.bm: spectral/%.run .FORCE
+	./bencher $@ $< $(SPECTRAL)
 
 # Clean up
 clean:
