@@ -49,6 +49,10 @@ bench-test: SPECTRAL := 100
 bench-test: BM_OUT := -
 bench-test: bench
 
+# Set a timeout of 15 min
+TIMEOUT_SECS := 900
+TIMEOUT := timeout -s KILL $(TIMEOUT_SECS)
+
 # Always run benchmarks
 .FORCE:
 
@@ -65,19 +69,19 @@ bencher: bencher.c
 
 # Run benchmarks
 nbody/%.bm: nbody/%.run bencher .FORCE
-	./bencher $(BM_OUT) $< $(NBODY)
+	-$(TIMEOUT) ./bencher $(BM_OUT) $< $(NBODY)
 
 revcomp/%.bm: revcomp/%.run bencher .FORCE
-	./bencher -i $(REVCOMP) $(BM_OUT) $< 0
+	-$(TIMEOUT) ./bencher -i $(REVCOMP) $(BM_OUT) $< 0
 
 fasta/%.bm: fasta/%.run bencher .FORCE
-	./bencher $(BM_OUT) $< $(FASTA)
+	-$(TIMEOUT) ./bencher $(BM_OUT) $< $(FASTA)
 
 trees/%.bm: trees/%.run bencher .FORCE
-	./bencher $(BM_OUT) $< $(TREES)
+	-$(TIMEOUT) ./bencher $(BM_OUT) $< $(TREES)
 
 spectral/%.bm: spectral/%.run bencher .FORCE
-	./bencher $(BM_OUT) $< $(SPECTRAL)
+	-$(TIMEOUT) ./bencher $(BM_OUT) $< $(SPECTRAL)
 
 # Clean up
 clean:
