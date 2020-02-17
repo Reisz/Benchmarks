@@ -5,6 +5,7 @@ U540 := -march=rv64gc
 NODE := $(shell uname -n)
 ifeq "$(NODE)" "freedom-u540"
 	ARCH := $(U540)
+	FREQ := 999999
 else
 	ARCH := -march=native
 endif
@@ -20,10 +21,12 @@ FILES    := $(wildcard */*.c) $(wildcard */*.cpp) $(wildcard */*.rs)
 BINARIES := $(addsuffix .run, $(FILES))
 BENCHES  := $(addsuffix .bm, $(FILES))
 
-.PHONY: default bench clean
+.PHONY: default bench bench-test freq clean
 
 default: $(BINARIES)
-bench: $(BENCHES)
+
+freq:
+	sudo ./adjust-cpu-freq.sh $(FREQ)
 
 # Benchmark settings
 NBODY    := 50000000
@@ -33,6 +36,10 @@ TREES    := 21
 SPECTRAL := 5500
 BM_OUT = $@
 
+# Adjust cpu frequencies then run benchmarks
+bench: freq $(BENCHES)
+
+# Reduced settings for testing
 bench-test: NBODY    := 1000
 bench-test: REVCOMP  := revcomp-input100000000.txt
 bench-test: FASTA    := 1000
