@@ -146,7 +146,8 @@ int main(int argc, char** argv) {
 	// Write header for current run
 	struct cpuinfo info;
 	get_cpuinfo(&info);
-	fprintf(outfile, "%s (%d x %d)\n" CSV_HEADER, argv[0], info.count, info.overall_freq);
+	// ISA_NAME is set in Makefile
+	fprintf(outfile, "%s (%d x %d, " ISA_NAME ")\n" CSV_HEADER, argv[0], info.count, info.overall_freq);
 
 	#define NUM_ITERS 5
 

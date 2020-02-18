@@ -54,7 +54,7 @@ void get_cpuinfo(struct cpuinfo *result) {
     result->count = cpus;
 
     int all_same = 1;
-    int prev, current;
+    int prev = 0, current = 0;
 
     for (int i = 0; i < cpus; ++i) {
         char *gov = governor(i);
