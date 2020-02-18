@@ -56,7 +56,7 @@ TIMEOUT := timeout -s KILL $(TIMEOUT_SECS)
 
 # Special rule for benchmarking utility
 bencher: bencher.c cpufreq.h fileutils.h
-	$(CC) $(CCFLAGS) -DISA_NAME="\"$(MACHINE)\" $< -o $@
+	$(CC) $(CCFLAGS) -DISA_NAME="\"$(MACHINE)\"" $< -o $@
 
 # Compile benchmarks
 %.c.run: %.c
