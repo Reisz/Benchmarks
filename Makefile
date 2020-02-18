@@ -85,4 +85,6 @@ spectral/%.bm: spectral/%.run bencher .FORCE
 clean:
 	@-rm -f bencher
 	@-rm -f */*.run
+
+clean-benches:
 	@-rm -f */*.bm
