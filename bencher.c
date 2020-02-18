@@ -9,52 +9,15 @@
 #include <sys/resource.h>
 #include <sys/wait.h>
 
+#include "fileutils.h"
+#include "cpufreq.h"
+
 #define STRINGIFY_HELPER(arg) #arg
 #define STRINGIFY(arg) STRINGIFY_HELPER(arg)
 
 int usage_error() {
 	fprintf(stderr, "Argument format is [-i <input-file>] <output-file> <binary> [<binary arguments>...]i\n");
 	return EXIT_FAILURE;
-}
-
-char *read_all(const char* filename, size_t *length_out) {
-	// Attempt to open the file
-	FILE *f = fopen(filename, "r");
-	if (!f) {
-		perror("Open input");
-		return NULL;
-	}
-
-	// Get total length
-	fseek(f, 0, SEEK_END);
-	size_t length = (size_t) ftell(f);
-	rewind(f);
-
-	// Write to output param
-	if (length_out)
-		*length_out = length;
-
-	// Allocate buffer for file contents and terminating '\0'
-	char *buffer = malloc(sizeof(char) * (length + 1));
-	if (!buffer) {
-		fprintf(stderr, "Could not allocate memory to hold %s", filename);
-		goto end; // close file & return
-	}
-
-	// Attempt to read the file to memory
-	size_t read = fread(buffer, sizeof(char), length, f);
-	if (read != length) {
-		perror("Wrong length");
-		free(buffer);
-		buffer = NULL;
-	}
-
-end:
-	// Attempt to close the file
-	if (fclose(f))
-		perror(filename);
-
-	return buffer;
 }
 
 #define CLOCK CLOCK_MONOTONIC
@@ -158,7 +121,7 @@ int main(int argc, char** argv) {
 	char* input = 0;
 	if (strncmp("-i", argv[0], 2) == 0) {
 		// Take "-i" and "<input-file>" from argv, open as read
-		input = read_all(argv[1], &input_len);
+		input = read_all(argv[1], &input_len, 1);
 		argc -= 2;
 		argv += 2;
 	}
@@ -181,7 +144,9 @@ int main(int argc, char** argv) {
 	++argv;
 
 	// Write header for current run
-	fprintf(outfile, "%s\n" CSV_HEADER, argv[0]);
+	struct cpuinfo info;
+	get_cpuinfo(&info);
+	fprintf(outfile, "%s (%d x %d)\n" CSV_HEADER, argv[0], info.count, info.overall_freq);
 
 	#define NUM_ITERS 5
 

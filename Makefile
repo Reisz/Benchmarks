@@ -57,7 +57,7 @@ TIMEOUT := timeout -s KILL $(TIMEOUT_SECS)
 .FORCE:
 
 # Special rule for benchmarking utility
-bencher: bencher.c
+bencher: bencher.c cpufreq.h fileutils.h
 	$(CC) $(CCFLAGS) $< -o $@
 
 # Compile benchmarks
