@@ -1,10 +1,8 @@
-# Node based flags
-U540 := -march=rv64gc
-
-# Change flags based on node
+# Change flags based on node/machine
 NODE := $(shell uname -n)
+MACHINE := $(shell uname -m)
 ifeq "$(NODE)" "freedom-u540"
-	ARCH := $(U540)
+	ARCH := -march=rv64gc
 	FREQ := 999999
 else
 	ARCH := -march=native
@@ -58,7 +56,7 @@ TIMEOUT := timeout -s KILL $(TIMEOUT_SECS)
 
 # Special rule for benchmarking utility
 bencher: bencher.c cpufreq.h fileutils.h
-	$(CC) $(CCFLAGS) $< -o $@
+	$(CC) $(CCFLAGS) -DISA_NAME="\"$(MACHINE)\" $< -o $@
 
 # Compile benchmarks
 %.c.run: %.c
