@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
+#include <assert.h>
 
 #include <sys/types.h>
 #include <sys/time.h>
@@ -98,13 +99,45 @@ void run_bench(const char* input, size_t input_len, FILE* outfile, char** argv) 
 	elapsed.tv_nsec -= start.tv_nsec;
 
 	// Write information to file
-	#define CSV_HEADER "time (seconds)\n"
+	#define CSV_SEP "  "
+	#define CSV_HEADER \
+		"total  " CSV_SEP \
+		"user   " CSV_SEP \
+		"system " CSV_SEP \
+		"minflt " CSV_SEP \
+		"majflt " CSV_SEP \
+		"swap   " CSV_SEP \
+		"vcsw   " CSV_SEP \
+		"ivcsw\n"
 
-	// Get decimal places for elapsed
-	char elapsed_decimals[10];
-	snprintf(elapsed_decimals, 10, "%09ld", elapsed.tv_nsec);
+	char decimals[10];
 
-	fprintf(outfile, "%ld.%.3s\n", elapsed.tv_sec, elapsed_decimals);
+	// Total time
+	snprintf(decimals, 10, "%09ld", elapsed.tv_nsec);
+	assert(elapsed.tv_sec < 1e4);
+	fprintf(outfile, "%3ld.%.3s" CSV_SEP, elapsed.tv_sec, decimals);
+
+	// User time
+	snprintf(decimals, 7, "%06ld", rusage.ru_utime.tv_usec);
+	assert(rusage.ru_utime.tv_sec < 1e4);
+	fprintf(outfile, "%3ld.%.3s" CSV_SEP, rusage.ru_utime.tv_sec, decimals);
+
+	// System time
+	snprintf(decimals, 7, "%06ld", rusage.ru_stime.tv_usec);
+	assert(rusage.ru_stime.tv_sec < 1e4);
+	fprintf(outfile, "%3ld.%.3s" CSV_SEP, rusage.ru_stime.tv_sec, decimals);
+
+	// Pagefaults
+	assert(rusage.ru_minflt < 1e8 && rusage.ru_majflt < 1e8);
+	fprintf(outfile, "%7ld" CSV_SEP "%7ld" CSV_SEP, rusage.ru_minflt, rusage.ru_majflt);
+
+	// Swaps
+	assert(rusage.ru_nswap < 1e8);
+	fprintf(outfile, "%7ld" CSV_SEP, rusage.ru_nswap);
+
+	// Context switches
+	assert(rusage.ru_nvcsw < 1e8 && rusage.ru_nivcsw < 1e8);
+	fprintf(outfile, "%7ld" CSV_SEP "%7ld\n", rusage.ru_nvcsw, rusage.ru_nivcsw);
 }
 
 int main(int argc, char** argv) {
