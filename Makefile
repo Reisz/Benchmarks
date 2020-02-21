@@ -19,7 +19,7 @@ FILES    := $(wildcard */*.c) $(wildcard */*.cpp) $(wildcard */*.rs)
 BINARIES := $(addsuffix .run, $(FILES))
 BENCHES  := $(addsuffix .bm, $(FILES))
 
-.PHONY: default bench bench-test freq clean
+.PHONY: default bench bench-test freq clean clean-benches
 
 default: $(BINARIES)
 
@@ -34,6 +34,10 @@ TREES    := 21
 SPECTRAL := 5500
 BM_OUT = $@
 
+# Set a timeout of 15 min
+TIMEOUT_SECS := 900
+TIMEOUT := timeout -s KILL $(TIMEOUT_SECS)
+
 # Adjust cpu frequencies then run benchmarks
 bench: freq $(BENCHES)
 
@@ -45,11 +49,8 @@ bench-test: TREES    := 10
 bench-test: SPECTRAL := 100
 
 bench-test: BM_OUT := -
+bench-test: TIMEOUT :=
 bench-test: bench
-
-# Set a timeout of 15 min
-TIMEOUT_SECS := 900
-TIMEOUT := timeout -s KILL $(TIMEOUT_SECS)
 
 # Always run benchmarks
 .FORCE:
