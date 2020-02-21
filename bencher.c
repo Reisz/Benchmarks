@@ -179,8 +179,34 @@ int main(int argc, char** argv) {
 	// Write header for current run
 	struct cpuinfo info;
 	get_cpuinfo(&info);
+
+	// Convert frequency
+	char decimals[8];
+	char *unit;
+	if (info.overall_freq >= 1e6) {
+		snprintf(decimals, 8, ".%06d", info.overall_freq % 1000000);
+		info.overall_freq /= 1000000;
+		unit = "GHz";
+	} else if (info.overall_freq >= 1e3) {
+		snprintf(decimals, 8, ".%06d", info.overall_freq % 1000);
+		info.overall_freq /= 1000;
+		unit = "MHz";
+	} else {
+		unit = "kHz";
+	}
+
+	// Truncate trailing zeroes
+	for (int i = strnlen(decimals, 8) - 1; i >= 0; --i) {
+		if (i == 0) {
+			decimals[0] = 0;
+		} else if (decimals[i] != '0') {
+			decimals[i + 1] = 0;
+			break;
+		}
+	}
+
 	// ISA_NAME is set in Makefile
-	fprintf(outfile, "%s (%d x %d, " ISA_NAME ")\n" CSV_HEADER, argv[0], info.count, info.overall_freq);
+	fprintf(outfile, "%s (%d x %d%s %s, " ISA_NAME ")\n" CSV_HEADER, argv[0], info.count, info.overall_freq, decimals, unit);
 
 	#define NUM_ITERS 5
 
