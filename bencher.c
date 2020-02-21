@@ -156,7 +156,8 @@ int main(int argc, char** argv) {
 
 	// Run five timing iterations
 	for (int i = 0; i < NUM_ITERS; ++i) {
-		printf("Iteration %0*d/%s\n", num_iters_len, i + 1, num_iters_str);
+		if (outfile != stdout)
+			printf("Iteration %0*d/%s\n", num_iters_len, i + 1, num_iters_str);
 		run_bench(input, input_len, outfile, argv);
 	}
 
