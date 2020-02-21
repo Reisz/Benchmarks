@@ -19,7 +19,7 @@ FILES    := $(wildcard */*.c) $(wildcard */*.cpp) $(wildcard */*.rs)
 BINARIES := $(addsuffix .run, $(FILES))
 BENCHES  := $(addsuffix .bm, $(FILES))
 
-.PHONY: default bench bench-test freq clean clean-benches
+.PHONY: default bench bench-test freq clean clean-benches clean-all
 
 default: $(BINARIES)
 
@@ -89,3 +89,5 @@ clean:
 
 clean-benches:
 	@-rm -f */*.bm
+
+clean-all: clean clean-benches
