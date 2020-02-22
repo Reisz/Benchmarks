@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <math.h>
 #include <time.h>
 #include <assert.h>
 
@@ -17,12 +18,110 @@
 #define STRINGIFY(arg) STRINGIFY_HELPER(arg)
 
 int usage_error() {
-	fprintf(stderr, "Argument format is [-i <input-file>] <output-file> <binary> [<binary arguments>...]i\n");
+	fprintf(stderr, "Argument format is [-i <input-file>] [-diff <diff-file> [-abserr <absolute-error>]] <output-file> <binary> [<binary arguments>...]i\n");
 	return EXIT_FAILURE;
 }
 
+struct Input {
+	size_t length;
+	char *text;
+};
+
+struct Diff {
+	size_t length;
+	char *text;
+	long double abserr;
+};
+
+int check_output(int fd, const struct Diff *diff) {
+	// Don't do anything when no diff is provided
+	if (!diff->text)
+		return 1;
+
+	// Variables for getline
+	FILE *file;
+	char *line = NULL;
+	size_t len = 0;
+	ssize_t read;
+
+	// Current position
+	char *diff_text = diff->text;
+	// Current Status
+	int ok = 1;
+
+	file = fdopen(fd, "r");
+
+	while ((read = getline(&line, &len, file)) != -1) {
+		// Find diff line-end
+		char *diff_next = strchr(diff_text, '\n');
+
+		// Print error when diff ended before output
+		if (!diff_next) {
+			fprintf(stderr, "Error: Expected result ended before end of actual result.\n");
+			fprintf(stderr, "Remaining:\n%s", line);
+			while ((read = getline(&line, &len, file)) != -1)
+				fprintf(stderr, "%s", line);
+			fprintf(stderr, "\n");
+
+			ok = 0;
+			break;
+		}
+		++diff_next; // include newline
+
+		// Calculate length of diff line
+		size_t diff_line = diff_next - diff_text;
+
+		// Textual diff first
+		// Unsing min is fine here because both strings include a terminating '\n'
+		#define MIN(a, b) (b) ^ (((a) ^ (b)) & -((a) < (b)))
+		int result = strncmp(line, diff_text, MIN(read, diff_line));
+
+
+		// Numerical diff as fallback
+		long double err = 0.0;
+		if (result != 0 && diff->abserr != 0) {
+			long double expected, actual;
+
+			int pos;
+			sscanf(diff_text, "%Lf%n", &expected, &pos);
+			sscanf(line, "%Lf", &actual);
+
+			err = fabsl(actual - expected);
+		}
+
+		// Print failure
+		if (result != 0 || err > diff->abserr) {
+			if (ok) {
+				fprintf(stderr, "Error: Diff failed.\n");
+				ok = 0;
+			}
+
+			fprintf(stderr, "  Expected: %.*s", (int) diff_line, diff_text);
+			fprintf(stderr, "  Actual:   %s", line);
+			if (err != 0.0)
+				fprintf(stderr, "  Error:     %Lg\n", err);
+
+		}
+
+		// Advance position of diff
+		diff_text = diff_next;
+	}
+
+	// Print error, when output ended before diff
+	if (diff_text != diff->text + diff->length) {
+		fprintf(stderr, "Error: Actual result ended before end of expected result.\n");
+		fprintf(stderr, "Remaining:\n%s\n", diff_text);
+
+		ok = 0;
+	}
+
+	free(line);
+	fclose(file);
+	return ok;
+}
+
 #define CLOCK CLOCK_MONOTONIC
-void run_bench(const char* input, size_t input_len, FILE* outfile, char** argv) {
+void run_bench(const struct Input *input, FILE* outfile, char** argv, const struct Diff *diff) {
 	// Store start time
 	struct timespec start;
 	clock_gettime(CLOCK, &start);
@@ -71,7 +170,7 @@ void run_bench(const char* input, size_t input_len, FILE* outfile, char** argv) 
 
 	// Write to the pipe if applicable
 	if (input)
-		write(pipes[PARENT_OUT], input, input_len);
+		write(pipes[PARENT_OUT], input->text, input->length);
 
 	// Close after writing
 	close(pipes[PARENT_OUT]);
@@ -85,10 +184,13 @@ void run_bench(const char* input, size_t input_len, FILE* outfile, char** argv) 
 	struct timespec elapsed;
 	clock_gettime(CLOCK, &elapsed);
 
-	// TODO check output?
-
-	// Close pipe after reading
+	// Check output and close pipe
+	int result = check_output(pipes[PARENT_IN], diff);
 	close(pipes[PARENT_IN]);
+
+	// Don't log results on diff failure
+	if (!result)
+		return;
 
 	// Subtract times, manually carry
 	elapsed.tv_sec -= start.tv_sec;
@@ -150,13 +252,37 @@ int main(int argc, char** argv) {
 		return usage_error();
 
 	// Optional argument "<input-file>" after "-i"
-	size_t input_len;
-	char* input = 0;
+	struct Input input = { 0, NULL };
 	if (strncmp("-i", argv[0], 2) == 0) {
-		// Take "-i" and "<input-file>" from argv, open as read
-		input = read_all(argv[1], &input_len, 1);
+		// Take "-i" and "<input-file>" from argv, read file to memory
+		input.text = read_all(argv[1], &input.length, 1);
 		argc -= 2;
 		argv += 2;
+	}
+
+	// Need at least two args to check for "<diff-file>" after "-d"
+	if (argc < 2)
+		return usage_error();
+
+	// Optional file to diff output against and optional absolute error for numeric diff.
+	struct Diff diff = { 0, NULL, 0.0 };
+	if (strncmp("-diff", argv[0], 5) == 0) {
+		// Take "-diff" and "<diff-file>" from argv, read file to memory
+		diff.text = read_all(argv[1], &diff.length, 1);
+		argc -= 2;
+		argv += 2;
+
+
+		// Need at least two args to check for "<diff-file>" after "-d"
+		if (argc < 2)
+			return usage_error();
+
+		if (strncmp("-abserr", argv[0], 7) == 0) {
+			// Take "-abserr" and "<abserr>" from argv, parse long double
+			sscanf(argv[1], "%Lf", &diff.abserr);
+			argc -= 2;
+			argv += 2;
+		}
 	}
 
 	// Need at least two args for "<output-file>" and "<binary>"
@@ -219,8 +345,11 @@ int main(int argc, char** argv) {
 	for (int i = 0; i < NUM_ITERS; ++i) {
 		if (outfile != stdout)
 			printf("Iteration %0*d/%s\n", num_iters_len, i + 1, num_iters_str);
-		run_bench(input, input_len, outfile, argv);
+		run_bench(&input, outfile, argv, &diff);
 	}
+
+	free(input.text);
+	free(diff.text);
 
 	return EXIT_SUCCESS;
 }
