@@ -5,7 +5,7 @@ ARCH := native
 NODE := $(shell uname -n)
 MACHINE := $(shell uname -m)
 ifeq "$(NODE)" "freedom-u540"
-	ARCH := -march=rv64gc
+	ARCH := rv64gc
 	FREQ := 999999
 else ifeq "$(NODE)" "raspberrypi"
 	FREQ := 1
