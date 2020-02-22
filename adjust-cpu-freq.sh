@@ -32,7 +32,7 @@ to_nearest_1k() {
     fi
 
     # Adjust decimals to multiple of 1000
-    while [ "$(("${#_right}" % 3))" != 0 ]; do
+    while [ $((${#_right} % 3)) != 0 ]; do
     _right="${_right}0"
     done
 
@@ -52,10 +52,10 @@ if [ "$1" ]; then
     # Try to recoginze requested unit
     if [ "$_freq" -lt 10 ]; then
         # Requested unit is GHz
-        _freq="$(("$_freq" * 1000000))"
+        _freq=$((_freq * 1000000))
     elif [ "$_freq" -lt 10000 ]; then
         # Requested unit is MHz
-        _freq="$(("$_freq" * 1000))"
+        _freq=$((_freq * 1000))
     else
         # Requested unit is kHz
         _freq="$_freq"
@@ -114,9 +114,9 @@ for _cpu in /sys/devices/system/cpu/cpu*[0-9]; do
             else
                 # Get absolute distance
                 if [ "$_freq" -lt "$_avail" ]; then
-                    _dist="$(("$_avail" - "$_freq"))"
+                    _dist=$((_avail - _freq))
                 else
-                    _dist="$(("$_freq" - "$_avail"))"
+                    _dist=$((_freq - _avail))
                 fi
 
                 # Update nearest
