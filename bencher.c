@@ -188,7 +188,7 @@ int main(int argc, char** argv) {
 		info.overall_freq /= 1000000;
 		unit = "GHz";
 	} else if (info.overall_freq >= 1e3) {
-		snprintf(decimals, 8, ".%06d", info.overall_freq % 1000);
+		snprintf(decimals, 8, ".%03d", info.overall_freq % 1000);
 		info.overall_freq /= 1000;
 		unit = "MHz";
 	} else {
