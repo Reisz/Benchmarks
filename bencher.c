@@ -205,7 +205,9 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	// ISA_NAME is set in Makefile
+	#ifndef ISA_NAME
+		#define ISA_NAME "unknown" // ISA_NAME should be set in Makefile
+	#endif
 	fprintf(outfile, "%s (%d x %d%s %s, " ISA_NAME ")\n" CSV_HEADER, argv[0], info.count, info.overall_freq, decimals, unit);
 
 	#define NUM_ITERS 5
