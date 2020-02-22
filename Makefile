@@ -28,7 +28,7 @@ freq:
 
 # Benchmark settings
 NBODY    := 50000000
-REVCOMP  := revcomp-input100000000.txt # TODO bigger input
+REVCOMP  := 25000000
 FASTA    := 25000000
 TREES    := 21
 SPECTRAL := 5500
@@ -43,7 +43,7 @@ bench: freq $(BENCHES)
 
 # Reduced settings for testing
 bench-test: NBODY    := 1000
-bench-test: REVCOMP  := revcomp-input100000000.txt
+bench-test: REVCOMP  := 1000
 bench-test: FASTA    := 1000
 bench-test: TREES    := 10
 bench-test: SPECTRAL := 100
@@ -57,7 +57,7 @@ bench-test: bench
 
 # Special rule for benchmarking utility
 bencher: bencher.c cpufreq.h fileutils.h
-	$(CC) $(CCFLAGS) -DISA_NAME="\"$(MACHINE)\"" $< -o $@
+	$(CC) -g $(CCFLAGS) -DISA_NAME="\"$(MACHINE)\"" $< -o $@
 
 # Compile benchmarks
 %.c.run: %.c
@@ -67,25 +67,48 @@ bencher: bencher.c cpufreq.h fileutils.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 # Run benchmarks
-nbody/%.bm: nbody/%.run bencher .FORCE
-	-$(TIMEOUT) ./bencher $(BM_OUT) $< $(NBODY)
+.SECONDEXPANSION: # Adapt diff filenames
+nbody/%.bm: nbody/%.run output/nbody-$$(NBODY).txt bencher .FORCE
+	-$(TIMEOUT) ./bencher -diff output/nbody-$(NBODY).txt -abserr 1.0e-8 $(BM_OUT) $< $(NBODY)
 
-revcomp/%.bm: revcomp/%.run bencher .FORCE
-	-$(TIMEOUT) ./bencher -i $(REVCOMP) $(BM_OUT) $< 0
+revcomp/%.bm: revcomp/%.run output/fasta-$$(REVCOMP).txt output/revcomp-$$(REVCOMP).txt bencher .FORCE
+	-$(TIMEOUT) ./bencher -i output/fasta-$(REVCOMP).txt -diff output/revcomp-$(REVCOMP).txt $(BM_OUT) $< 0
 
-fasta/%.bm: fasta/%.run bencher .FORCE
-	-$(TIMEOUT) ./bencher $(BM_OUT) $< $(FASTA)
+trees/%.bm: trees/%.run output/trees-$$(TREES).txt bencher .FORCE
+	-$(TIMEOUT) ./bencher -diff output/trees-$(TREES).txt $(BM_OUT) $< $(TREES)
 
-trees/%.bm: trees/%.run bencher .FORCE
-	-$(TIMEOUT) ./bencher $(BM_OUT) $< $(TREES)
+spectral/%.bm: spectral/%.run output/spectral-$$(SPECTRAL).txt bencher .FORCE
+	-$(TIMEOUT) ./bencher -diff output/spectral-$(SPECTRAL).txt $(BM_OUT) $< $(SPECTRAL)
 
-spectral/%.bm: spectral/%.run bencher .FORCE
-	-$(TIMEOUT) ./bencher $(BM_OUT) $< $(SPECTRAL)
+fasta/%.bm: fasta/%.run output/fasta-$$(FASTA).txt bencher .FORCE
+	-$(TIMEOUT) ./bencher -diff output/fasta-$(FASTA).txt $(BM_OUT) $< $(FASTA)
 
 # Clean up
 clean:
 	@-rm -f bencher
 	@-rm -f */*.run
+	@-rm -rf output
 
 clean-benches:
 	@-rm -f */*.bm
+
+.SECONDARY: # Keep diff files
+output/nbody-%.txt: nbody/1.c.run
+	@mkdir -p output
+	./$< $* > $@
+
+output/revcomp-%.txt: revcomp/2.c.run output/fasta-%.txt
+	@mkdir -p output
+	cat output/fasta-$*.txt | ./$< 0 > $@
+
+output/trees-%.txt: trees/1.c.run
+	@mkdir -p output
+	./$< $* > $@
+
+output/spectral-%.txt: spectral/1.c.run
+	@mkdir -p output
+	./$< $* > $@
+
+output/fasta-%.txt: fasta/1.c.run
+	@mkdir -p output
+	./$< $* > $@

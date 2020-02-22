@@ -6,3 +6,4 @@
 bencher
 *.run
 *.bm
+output
