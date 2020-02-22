@@ -1,17 +1,20 @@
+# Use -march=native by default
+ARCH := native
+
 # Change flags based on node/machine
 NODE := $(shell uname -n)
 MACHINE := $(shell uname -m)
 ifeq "$(NODE)" "freedom-u540"
 	ARCH := -march=rv64gc
 	FREQ := 999999
-else
-	ARCH := -march=native
+else ifeq "$(NODE)" "raspberrypi"
+	FREQ := 1
 endif
 
 # Compilers and flags
 CC  := gcc
 CXX := g++
-CCFLAGS  := -pipe -Wall -O3 -fomit-frame-pointer -fopenmp -pthread $(ARCH) -lm
+CCFLAGS  := -pipe -Wall -O3 -fomit-frame-pointer -fopenmp -pthread -march=$(ARCH) -lm
 CXXFLAGS := $(CCFLAGS)
 
 # Targets
@@ -57,7 +60,7 @@ bench-test: bench
 
 # Special rule for benchmarking utility
 bencher: bencher.c cpufreq.h fileutils.h
-	$(CC) -g $(CCFLAGS) -DISA_NAME="\"$(MACHINE)\"" $< -o $@
+	$(CC) -g $(CCFLAGS) -DISA_NAME='"$(MACHINE)"' $< -o $@
 
 # Compile benchmarks
 %.c.run: %.c
