@@ -61,7 +61,7 @@ if [ "$1" ]; then
         _freq="$_freq"
     fi
 
-    printf 'Requesting %sMHz\n\n' "$(khz_to_mhz "$_freq")"
+    printf 'Requesting %s MHz\n\n' "$(khz_to_mhz "$_freq")"
 fi
 
 for _cpu in /sys/devices/system/cpu/cpu*[0-9]; do
@@ -132,9 +132,9 @@ for _cpu in /sys/devices/system/cpu/cpu*[0-9]; do
             echo "Warning: Excact requested frequency not found, using nearest alternative."
         fi
 
-        printf 'Setting %s frequency to %sMHz\n' "$(basename "$_cpu")" "$(khz_to_mhz "$_nearest")"
+        printf 'Setting %s frequency to %s MHz\n' "$(basename "$_cpu")" "$(khz_to_mhz "$_nearest")"
         echo "$_nearest" > "$_cpu/cpufreq/scaling_setspeed"
     elif [ $_has_userspace ]; then
-        printf 'Keeping %s frequency at %sMHz\n' "$(basename "$_cpu")" "$(khz_to_mhz "$(cat "$_cpu/cpufreq/scaling_cur_freq")")"
+        printf 'Keeping %s frequency at %s MHz\n' "$(basename "$_cpu")" "$(khz_to_mhz "$(cat "$_cpu/cpufreq/scaling_cur_freq")")"
     fi
 done
