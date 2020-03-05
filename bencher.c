@@ -33,6 +33,7 @@ struct Diff {
 	long double abserr;
 };
 
+#define DIFF_COUNT 3
 int check_output(FILE *file, const struct Diff *diff) {
 	// Don't do anything when no diff is provided
 	if (!diff->text)
@@ -56,8 +57,17 @@ int check_output(FILE *file, const struct Diff *diff) {
 		if (!diff_next) {
 			fprintf(stderr, "Error: Expected result ended before end of actual result.\n");
 			fprintf(stderr, "Remaining:\n%s", line);
-			while ((read = getline(&line, &len, file)) != -1)
-				fprintf(stderr, "%s", line);
+
+			int linecnt = 0;
+			while ((read = getline(&line, &len, file)) != -1) {
+				if (linecnt <= DIFF_COUNT)
+					fprintf(stderr, "%s", line);
+				++linecnt;
+			}
+
+			if (linecnt > DIFF_COUNT)
+				fprintf(stderr, "... %d more lines.\n", linecnt - DIFF_COUNT);
+
 			fprintf(stderr, "\n");
 
 			ok = 0;
@@ -93,16 +103,21 @@ int check_output(FILE *file, const struct Diff *diff) {
 				ok = 0;
 			}
 
-			fprintf(stderr, "  Expected: %.*s", (int) diff_line, diff_text);
-			fprintf(stderr, "  Actual:   %s", line);
-			if (err != 0.0)
-				fprintf(stderr, "  Error:     %Lg\n", err);
-
+			if (error_count <= DIFF_COUNT) {
+				fprintf(stderr, "  Expected: %.*s", (int) diff_line, diff_text);
+				fprintf(stderr, "  Actual:   %s", line);
+				if (err != 0.0)
+					fprintf(stderr, "  Error:     %Lg\n", err);
+			}
+			++ error_count;
 		}
 
 		// Advance position of diff
 		diff_text = diff_next;
 	}
+
+	if (error_count > DIFF_COUNT)
+		fprintf(stderr, "... %d more errors.\n", error_count - DIFF_COUNT);
 
 	// Print error, when output ended before diff
 	if (diff_text != diff->text + diff->length) {
