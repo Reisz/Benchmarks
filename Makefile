@@ -106,7 +106,7 @@ output/nbody-%.txt: nbody/1.c.run
 	@mkdir -p output
 	./$< $* > $@
 
-output/revcomp-%.txt: revcomp/2.c.run output/fasta-%.txt
+output/revcomp-%.txt: revcomp/4.c.run output/fasta-%.txt
 	@mkdir -p output
 	cat output/fasta-$*.txt | ./$< 0 > $@
 
