@@ -33,13 +33,12 @@ struct Diff {
 	long double abserr;
 };
 
-int check_output(int fd, const struct Diff *diff) {
+int check_output(FILE *file, const struct Diff *diff) {
 	// Don't do anything when no diff is provided
 	if (!diff->text)
 		return 1;
 
 	// Variables for getline
-	FILE *file;
 	char *line = NULL;
 	size_t len = 0;
 	ssize_t read;
@@ -48,9 +47,7 @@ int check_output(int fd, const struct Diff *diff) {
 	char *diff_text = diff->text;
 	// Current Status
 	int ok = 1;
-
-	file = fdopen(fd, "r");
-
+	int error_count = 0;
 	while ((read = getline(&line, &len, file)) != -1) {
 		// Find diff line-end
 		char *diff_next = strchr(diff_text, '\n');
@@ -116,34 +113,29 @@ int check_output(int fd, const struct Diff *diff) {
 	}
 
 	free(line);
-	fclose(file);
 	return ok;
 }
 
 #define CLOCK CLOCK_MONOTONIC
+#ifndef BUFFER
+	#define BUFFER "tmp/buffer"
+#endif
 void run_bench(const struct Input *input, FILE* outfile, char** argv, const struct Diff *diff) {
-	// Store start time
-	struct timespec start;
-	clock_gettime(CLOCK, &start);
 
 	// Create pipes for communication
 	#define CHILD_IN 0
 	#define PARENT_OUT 1
-	#define PARENT_IN 2
-	#define CHILD_OUT 3
-	int pipes[4];
+	int pipes[2];
 
 	// Create first set of pipes
-	if (pipe(&pipes[0])) {
+	if (pipe(pipes)) {
 		perror("pipe child -> parent");
 		exit(EXIT_FAILURE);
 	}
 
-	// Create second set of pipes
-	if (pipe(&pipes[2])) {
-		perror("pipe parent -> child");
-		exit(EXIT_FAILURE);
-	}
+	// Store start time
+	struct timespec start;
+	clock_gettime(CLOCK, &start);
 
 	// Attempt to fork/execv to run child process
 	pid_t pid = fork();
@@ -151,22 +143,22 @@ void run_bench(const struct Input *input, FILE* outfile, char** argv, const stru
 		perror("fork");
 		exit(EXIT_FAILURE);
 	} else if (pid == 0) {
-		// Close wrong sides of pipes
-		close(pipes[PARENT_IN]);
+		// Close wrong side of pipe
 		close(pipes[PARENT_OUT]);
 
-		// Map pipes to stdin/stdout
+		// Map pipes to stdin
 		dup2(pipes[CHILD_IN], 0);
-		dup2(pipes[CHILD_OUT], 1);
+
+		// Map stdout to tmpfs
+		freopen(BUFFER, "w", stdout);
 
 		execv(argv[0], argv);
 		perror(argv[0]);
 		exit(EXIT_FAILURE);
 	}
 
-	// Close wrong sides of pipes
+	// Close wrong side of pipe
 	close(pipes[CHILD_IN]);
-	close(pipes[CHILD_OUT]);
 
 	// Write to the pipe if applicable
 	if (input)
@@ -185,8 +177,9 @@ void run_bench(const struct Input *input, FILE* outfile, char** argv, const stru
 	clock_gettime(CLOCK, &elapsed);
 
 	// Check output and close pipe
-	int result = check_output(pipes[PARENT_IN], diff);
-	close(pipes[PARENT_IN]);
+	FILE *output = fopen(BUFFER, "r");
+	int result = check_output(output, diff);
+	fclose(output);
 
 	// Don't log results on diff failure
 	if (!result)

@@ -22,11 +22,15 @@ FILES    := $(wildcard */*.c) $(wildcard */*.cpp) $(wildcard */*.rs)
 BINARIES := $(addsuffix .run, $(FILES))
 BENCHES  := $(addsuffix .bm, $(FILES))
 
-.PHONY: default bench bench-test freq clean clean-benches clean-all
+TMP_DIR := tmp/
+
+.PHONY: default bench bench-test bench-prep clean clean-benches clean-all
 
 default: $(BINARIES)
 
-freq:
+bench-prep:
+	mkdir -p $(TMP_DIR)
+	sudo mount -t tmpfs tmpfs $(TMP_DIR)
 	sudo ./adjust-cpu-freq.sh $(FREQ)
 
 # Benchmark settings
@@ -42,7 +46,7 @@ TIMEOUT_SECS := 900
 TIMEOUT := timeout -s KILL $(TIMEOUT_SECS)
 
 # Adjust cpu frequencies then run benchmarks
-bench: freq $(BENCHES)
+bench: bench-prep $(BENCHES)
 
 # Reduced settings for testing
 bench-test: NBODY    := 1000
