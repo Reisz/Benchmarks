@@ -135,7 +135,7 @@ int check_output(FILE *file, const struct Diff *diff) {
 #ifndef BUFFER
 	#define BUFFER "tmp/buffer"
 #endif
-void run_bench(const struct Input *input, FILE* outfile, char** argv, const struct Diff *diff) {
+int run_bench(const struct Input *input, FILE* outfile, char** argv, const struct Diff *diff) {
 
 	// Create pipes for communication
 	#define CHILD_IN 0
@@ -198,7 +198,7 @@ void run_bench(const struct Input *input, FILE* outfile, char** argv, const stru
 
 	// Don't log results on diff failure
 	if (!result)
-		return;
+		return result;
 
 	// Subtract times, manually carry
 	elapsed.tv_sec -= start.tv_sec;
@@ -248,6 +248,8 @@ void run_bench(const struct Input *input, FILE* outfile, char** argv, const stru
 	// Context switches
 	assert(rusage.ru_nvcsw < 1e8 && rusage.ru_nivcsw < 1e8);
 	fprintf(outfile, "%7ld" CSV_SEP "%7ld\n", rusage.ru_nvcsw, rusage.ru_nivcsw);
+
+	return 1;
 }
 
 int main(int argc, char** argv) {
@@ -353,7 +355,8 @@ int main(int argc, char** argv) {
 	for (int i = 0; i < NUM_ITERS; ++i) {
 		if (outfile != stdout)
 			printf("Iteration %0*d/%s\n", num_iters_len, i + 1, num_iters_str);
-		run_bench(&input, outfile, argv, &diff);
+		if (!run_bench(&input, outfile, argv, &diff))
+			break;
 	}
 
 	free(input.text);
