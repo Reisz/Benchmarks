@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -5,6 +6,7 @@
 #include <math.h>
 #include <time.h>
 #include <assert.h>
+#include <sched.h>
 
 #include <sys/types.h>
 #include <sys/time.h>
@@ -148,6 +150,11 @@ int run_bench(const struct Input *input, FILE* outfile, char** argv, const struc
 		exit(EXIT_FAILURE);
 	}
 
+	// Create cpu set for cpu 0
+	cpu_set_t cpu_set;
+	CPU_ZERO(&cpu_set);
+	CPU_SET(0, &cpu_set);
+
 	// Store start time
 	struct timespec start;
 	clock_gettime(CLOCK, &start);
@@ -167,6 +174,10 @@ int run_bench(const struct Input *input, FILE* outfile, char** argv, const struc
 		// Map stdout to tmpfs
 		freopen(BUFFER, "w", stdout);
 
+		// Pin to cpu 0
+		sched_setaffinity(0, sizeof(cpu_set), &cpu_set);
+
+		// Run benchmark
 		execv(argv[0], argv);
 		perror(argv[0]);
 		exit(EXIT_FAILURE);
