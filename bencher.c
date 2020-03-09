@@ -153,7 +153,7 @@ int run_bench(const struct Input *input, FILE* outfile, char** argv, const struc
 	// Create cpu set for cpu 0
 	cpu_set_t cpu_set;
 	CPU_ZERO(&cpu_set);
-	CPU_SET(0, &cpu_set);
+	CPU_SET(1, &cpu_set);
 
 	// Store start time
 	struct timespec start;
