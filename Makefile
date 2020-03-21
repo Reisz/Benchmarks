@@ -41,8 +41,8 @@ TREES    := 21
 SPECTRAL := 5500
 BM_OUT = $@
 
-# Set a timeout of 15 min
-TIMEOUT_SECS := 900
+# Set a timeout of 20 min
+TIMEOUT_SECS := 1200
 TIMEOUT := timeout -s KILL $(TIMEOUT_SECS)
 
 # Adjust cpu frequencies then run benchmarks
