@@ -8,3 +8,7 @@ bencher
 *.bm
 output
 tmp
+
+# Packing
+compiler_info.txt
+*.tar.gz

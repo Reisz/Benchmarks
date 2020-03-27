@@ -60,8 +60,17 @@ bench-test: BM_OUT := -
 bench-test: TIMEOUT :=
 bench-test: bench
 
-# Always run benchmarks
-.FORCE:
+# Pack bechmark results
+pack: compiler_info.txt
+	tar -czvf $(MACHINE)_$(shell date -I).tar.gz */*.bm compiler_info.txt
+
+# Clean up
+clean:
+	@-rm -f bencher
+	@-rm -f */*.run
+clean-benches:
+	@-rm -f */*.bm
+clean-all: clean clean-benches
 
 # Special rule for benchmarking utility
 bencher: bencher.c cpufreq.h fileutils.h
@@ -90,20 +99,19 @@ output/trees-%.txt: trees/1.c.run
 	@mkdir -p output
 	./$< $* > $@
 
-# Clean up
-clean:
-	@-rm -f bencher
-	@-rm -f */*.run
-clean-benches:
-	@-rm -f */*.bm
-clean-all: clean clean-benches
+# Always run benchmarks
+.FORCE:
+
+compiler_info.txt: .FORCE
+	@$(CC) --version | head -n 1 > $@
+	@$(CXX) --version | head -n 1 >> $@
 
 # Run benchmarks
 .SECONDEXPANSION: # Adapt diff filenames
 
 .SECONDARY: output/fasta-$$(FASTA).txt
 fasta/%.bm: fasta/%.run output/fasta-$$(FASTA).txt bencher .FORCE
--$(TIMEOUT) ./bencher -diff output/fasta-$(FASTA).txt $(BM_OUT) $< $(FASTA)
+	-$(TIMEOUT) ./bencher -diff output/fasta-$(FASTA).txt $(BM_OUT) $< $(FASTA)
 
 .SECONDARY: output/nbody-$$(NBODY).txt
 nbody/%.bm: nbody/%.run output/nbody-$$(NBODY).txt bencher .FORCE
