@@ -33,9 +33,8 @@ SPECTRAL := 5500
 TREES    := 21
 BM_OUT = $@
 
-# Set a timeout of 20 min
-TIMEOUT_SECS := 1200
-TIMEOUT := timeout -s KILL $(TIMEOUT_SECS)
+# Set a timeout of 5 min
+TIMEOUT := -t 300
 
 .PHONY: default bench-prep bench bench-test clean clean-benches clean-all
 
@@ -111,20 +110,20 @@ compiler_info.txt: .FORCE
 
 .SECONDARY: output/fasta-$$(FASTA).txt
 fasta/%.bm: fasta/%.run output/fasta-$$(FASTA).txt bencher .FORCE
-	-$(TIMEOUT) ./bencher -diff output/fasta-$(FASTA).txt $(BM_OUT) $< $(FASTA)
+	-./bencher -diff output/fasta-$(FASTA).txt $(TIMEOUT) $(BM_OUT) $< $(FASTA)
 
 .SECONDARY: output/nbody-$$(NBODY).txt
 nbody/%.bm: nbody/%.run output/nbody-$$(NBODY).txt bencher .FORCE
-	-$(TIMEOUT) ./bencher -diff output/nbody-$(NBODY).txt -abserr 1.0e-8 $(BM_OUT) $< $(NBODY)
+	-./bencher -diff output/nbody-$(NBODY).txt -abserr 1.0e-8 $(TIMEOUT) $(BM_OUT) $< $(NBODY)
 
 .SECONDARY: output/fasta-$$(REVCOMP).txt output/revcomp-$$(REVCOMP).txt
 revcomp/%.bm: revcomp/%.run output/fasta-$$(REVCOMP).txt output/revcomp-$$(REVCOMP).txt bencher .FORCE
-	-$(TIMEOUT) ./bencher -i output/fasta-$(REVCOMP).txt -diff output/revcomp-$(REVCOMP).txt $(BM_OUT) $< 0
+	-./bencher -i output/fasta-$(REVCOMP).txt -diff output/revcomp-$(REVCOMP).txt $(TIMEOUT) $(BM_OUT) $< 0
 
 .SECONDARY: output/spectral-$$(SPECTRAL).txt
 spectral/%.bm: spectral/%.run output/spectral-$$(SPECTRAL).txt bencher .FORCE
-	-$(TIMEOUT) ./bencher -diff output/spectral-$(SPECTRAL).txt $(BM_OUT) $< $(SPECTRAL)
+	-./bencher -diff output/spectral-$(SPECTRAL).txt $(TIMEOUT) $(BM_OUT) $< $(SPECTRAL)
 
 .SECONDARY: output/trees-$$(TREES).txt
 trees/%.bm: trees/%.run output/trees-$$(TREES).txt bencher .FORCE
-	-$(TIMEOUT) ./bencher -diff output/trees-$(TREES).txt $(BM_OUT) $< $(TREES)
+	-./bencher -diff output/trees-$(TREES).txt $(TIMEOUT) $(BM_OUT) $< $(TREES)

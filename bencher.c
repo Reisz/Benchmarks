@@ -20,7 +20,7 @@
 #define STRINGIFY(arg) STRINGIFY_HELPER(arg)
 
 int usage_error() {
-	fprintf(stderr, "Argument format is [-i <input-file>] [-diff <diff-file> [-abserr <absolute-error>]] <output-file> <binary> [<binary arguments>...]i\n");
+	fprintf(stderr, "Argument format is [-i <input-file>] [-diff <diff-file> [-abserr <absolute-error>]] [-t <timeout-secs>] <output-file> <binary> [<binary arguments>...]\n");
 	return EXIT_FAILURE;
 }
 
@@ -137,7 +137,7 @@ int check_output(FILE *file, const struct Diff *diff) {
 #ifndef BUFFER
 	#define BUFFER "tmp/buffer"
 #endif
-int run_bench(const struct Input *input, FILE* outfile, char** argv, const struct Diff *diff) {
+int run_bench(const struct Input *input, FILE* outfile, char** argv, rlim_t timeout_secs, const struct Diff *diff) {
 
 	// Create pipes for communication
 	#define CHILD_IN 0
@@ -177,6 +177,14 @@ int run_bench(const struct Input *input, FILE* outfile, char** argv, const struc
 		// Pin to cpu 0
 		sched_setaffinity(0, sizeof(cpu_set), &cpu_set);
 
+		// Set timeout
+		if (timeout_secs > 0) {
+			struct rlimit limit;
+			getrlimit(RLIMIT_CPU, &limit);
+			limit.rlim_cur = timeout_secs;
+			setrlimit(RLIMIT_CPU, &limit);
+		}
+
 		// Run benchmark
 		execv(argv[0], argv);
 		perror(argv[0]);
@@ -197,6 +205,10 @@ int run_bench(const struct Input *input, FILE* outfile, char** argv, const struc
 	int status;
 	struct rusage rusage;
 	wait4(pid, &status, 0, &rusage);
+
+	// Stop if the process did not exit successfully
+	if (status != EXIT_SUCCESS)
+		return 0;
 
 	// Store end time
 	struct timespec elapsed;
@@ -294,16 +306,28 @@ int main(int argc, char** argv) {
 		argv += 2;
 
 
-		// Need at least two args to check for "<diff-file>" after "-d"
+		// Need at least two args to check for "<absolute-error>" after "-abserr"
 		if (argc < 2)
 			return usage_error();
 
 		if (strncmp("-abserr", argv[0], 7) == 0) {
-			// Take "-abserr" and "<abserr>" from argv, parse long double
+			// Take "-abserr" and "<absolute-error>" from argv, parse long double
 			sscanf(argv[1], "%Lf", &diff.abserr);
 			argc -= 2;
 			argv += 2;
 		}
+	}
+
+	// Need at least two args to check for "<timeout-secs>" after "-t"
+	if (argc < 2)
+		return usage_error();
+
+	rlim_t timeout_secs = 0;
+	if (strncmp("-t", argv[0], 7) == 0) {
+		// Take "-t" and "<timout-secs>" from argv, parse long
+		sscanf(argv[1], "%lu", &timeout_secs);
+		argc -= 2;
+		argv += 2;
 	}
 
 	// Need at least two args for "<output-file>" and "<binary>"
@@ -366,7 +390,7 @@ int main(int argc, char** argv) {
 	for (int i = 0; i < NUM_ITERS; ++i) {
 		if (outfile != stdout)
 			printf("Iteration %0*d/%s\n", num_iters_len, i + 1, num_iters_str);
-		if (!run_bench(&input, outfile, argv, &diff))
+		if (!run_bench(&input, outfile, argv, timeout_secs, &diff))
 			break;
 	}
 
