@@ -6,7 +6,7 @@ SIMD := true
 NODE := $(shell uname -n)
 MACHINE := $(shell uname -m)
 ifeq "$(NODE)" "freedom-u540"
-	undef SIMD
+	undefine SIMD
 	ARCH := rv64gc
 	FREQ := 999999
 else ifeq "$(NODE)" "raspberrypi"
