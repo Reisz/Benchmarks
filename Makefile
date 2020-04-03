@@ -62,7 +62,7 @@ bench-test: SPECTRAL := 100
 bench-test: TREES    := 10
 
 bench-test: BM_OUT := -
-bench-test: TIMEOUT :=
+bench-test: TIMEOUT := -t 5
 bench-test: bench
 
 # Pack bechmark results
