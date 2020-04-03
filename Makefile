@@ -1,15 +1,15 @@
 # Use -march=native by default
 ARCH := native
+SIMD := true
 
 # Change flags based on node/machine
 NODE := $(shell uname -n)
 MACHINE := $(shell uname -m)
 ifeq "$(NODE)" "freedom-u540"
+	undef SIMD
 	ARCH := rv64gc
 	FREQ := 999999
 else ifeq "$(NODE)" "raspberrypi"
-	SIMD := +simd
-	ARCH := armv8-a+crc
 	FREQ := 1
 endif
 
@@ -72,11 +72,11 @@ pack: compiler_info.txt
 # Clean up
 clean:
 	@-rm -f bencher
-	@-rm -rf output
 	@-rm -f */*.run
 clean-benches:
 	@-rm -f */*.bm
 clean-all: clean clean-benches
+	@-rm -rf output
 
 # Special rule for benchmarking utility
 bencher: bencher.c cpufreq.h fileutils.h
@@ -88,10 +88,8 @@ bencher: bencher.c cpufreq.h fileutils.h
 %.cpp.run: %.cpp
 	$(CXX) $(CXXFLAGS) -fno-tree-vectorize $< -o $@
 
-%.c.simd.run: ARCH := $(ARCH)$(SIMD)
 %.c.simd.run: %.c
 	$(CC) $(CCFLAGS) $< -o $@
-%.cpp.simd.run: ARCH := $(ARCH)$(SIMD)
 %.cpp.simd.run: %.cpp
 	$(CXX) $(CXXFLAGS) $< -o $@
 
