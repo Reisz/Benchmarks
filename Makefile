@@ -8,17 +8,23 @@ ifeq "$(NODE)" "freedom-u540"
 	ARCH := rv64gc
 	FREQ := 999999
 else ifeq "$(NODE)" "raspberrypi"
+	SIMD := +simd
+	ARCH := armv8-a+crc
 	FREQ := 1
 endif
 
 # Compilers and flags
 CC  := gcc
 CXX := g++
-CCFLAGS  := -pipe -Wall -O3 -fomit-frame-pointer -fopenmp -pthread -march=$(ARCH) -lm
-CXXFLAGS := $(CCFLAGS)
+# Indirect assignment to allow changing $(ARCH)
+CCFLAGS  = -pipe -Wall -O3 -fomit-frame-pointer -fopenmp -pthread -march=$(ARCH) -lm
+CXXFLAGS = $(CCFLAGS)
 
 # Targets
 FILES    := $(wildcard */*.c) $(wildcard */*.cpp) $(wildcard */*.rs)
+ifdef SIMD
+	FILES := $(FILES) $(addsuffix .simd, $(FILES))
+endif
 BINARIES := $(addsuffix .run, $(FILES))
 BENCHES  := $(addsuffix .bm, $(FILES))
 
@@ -73,13 +79,21 @@ clean-all: clean clean-benches
 
 # Special rule for benchmarking utility
 bencher: bencher.c cpufreq.h fileutils.h
-	$(CC) -g $(CCFLAGS) -DISA_NAME='"$(MACHINE)"' $< -o $@
+	$(CC) $(CCFLAGS) -DISA_NAME='"$(MACHINE)"' $< -o $@
 
 # Compile benchmark binaries
 %.c.run: %.c
-	$(CC) $(CCFLAGS) $< -o $@
+	$(CC) $(CCFLAGS) -fno-tree-vectorize $< -o $@
 %.cpp.run: %.cpp
+	$(CXX) $(CXXFLAGS) -fno-tree-vectorize $< -o $@
+
+%.c.simd.run: ARCH := $(ARCH)$(SIMD)
+%.c.simd.run: %.c
+	$(CC) $(CCFLAGS) $< -o $@
+%.cpp.simd.run: ARCH := $(ARCH)$(SIMD)
+%.cpp.simd.run: %.cpp
 	$(CXX) $(CXXFLAGS) $< -o $@
+
 
 # Diff files
 output/fasta-%.txt: fasta/1.c.run
