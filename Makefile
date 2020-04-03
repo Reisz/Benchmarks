@@ -111,63 +111,47 @@ output/trees-%.txt: trees/1.c.run
 	@mkdir -p output
 	./$< $* > $@
 
-# Always run benchmarks
-.FORCE:
-
+# Collect compiler versions
 compiler_info.txt: .FORCE
 	@$(CC) --version | head -n 1 > $@
 	@$(CXX) --version | head -n 1 >> $@
 
-# Run benchmarks
-.SECONDEXPANSION: # Adapt diff filenames
-CONDITIONAL = if ! diff $(@D)/$*.run $(@D)/$*.simd.run >/dev/null; then $(BENCH); fi
+
 
 # fasta
-.SECONDARY: output/fasta-$$(FASTA).txt
-fasta/%: DEPENDS = output/fasta-$(FASTA).txt bencher .FORCE
+.SECONDARY: output/fasta-$(FASTA).txt
+fasta/%: DEPENDS = output/fasta-$(FASTA).txt
 fasta/%: BENCH = ./bencher -diff output/fasta-$(FASTA).txt $(TIMEOUT) $(BM_OUT) $< $(FASTA)
 
-fasta/%.simd.bm: fasta/%.simd.run $$(DEPENDS)
-	-$(CONDITIONAL)
-fasta/%.bm: fasta/%.run $$(DEPENDS)
-	-$(BENCH)
-
 # nbody
-.SECONDARY: output/nbody-$$(NBODY).txt
-nbody/%: DEPENDS = output/nbody-$(NBODY).txt bencher .FORCE
+.SECONDARY: output/nbody-$(NBODY).txt
+nbody/%: DEPENDS = output/nbody-$(NBODY).txt
 nbody/%: BENCH = ./bencher -diff output/nbody-$(NBODY).txt -abserr 1.0e-8 $(TIMEOUT) $(BM_OUT) $< $(NBODY)
 
-nbody/%.simd.bm: nbody/%.simd.run $$(DEPENDS)
-	-$(CONDITIONAL)
-nbody/%.bm: nbody/%.run $$(DEPENDS)
-	-$(BENCH)
-
 # revcomp
-.SECONDARY: output/fasta-$$(REVCOMP).txt output/revcomp-$$(REVCOMP).txt
-revcomp/%: DEPENDS = output/fasta-$$(REVCOMP).txt output/revcomp-$$(REVCOMP).txt bencher .FORCE
+.SECONDARY: output/fasta-$(REVCOMP).txt output/revcomp-$(REVCOMP).txt
+revcomp/%: DEPENDS = output/fasta-$(REVCOMP).txt output/revcomp-$(REVCOMP).txt
 revcomp/%: BENCH = ./bencher -i output/fasta-$(REVCOMP).txt -diff output/revcomp-$(REVCOMP).txt $(TIMEOUT) $(BM_OUT) $< 0
 
-revcomp/%.simd.bm: revcomp/%.simd.run $$(DEPENDS)
-	-$(CONDITIONAL)
-revcomp/%.bm: revcomp/%.run $$(DEPENDS)
-	-$(BENCH)
-
 # spectral
-.SECONDARY: output/spectral-$$(SPECTRAL).txt
-spectral/%: DEPENDS = output/spectral-$(SPECTRAL).txt bencher .FORCE
+.SECONDARY: output/spectral-$(SPECTRAL).txt
+spectral/%: DEPENDS = output/spectral-$(SPECTRAL).txt
 spectral/%: BENCH = ./bencher -diff output/spectral-$(SPECTRAL).txt $(TIMEOUT) $(BM_OUT) $< $(SPECTRAL)
 
-spectral/%.simd.bm: spectral/%.simd.run $$(DEPENDS)
-	-$(CONDITIONAL)
-spectral/%.bm: spectral/%.run $$(DEPENDS)
-	-$(BENCH)
-
 # trees
-.SECONDARY: output/trees-$$(TREES).txt
-trees/%: DEPENDS = output/trees-$(TREES).txt bencher .FORCE
+.SECONDARY: output/trees-$(TREES).txt
+trees/%: DEPENDS = output/trees-$(TREES).txt
 trees/%: BENCH = ./bencher -diff output/trees-$(TREES).txt $(TIMEOUT) $(BM_OUT) $< $(TREES)
 
-trees/%.simd.bm: trees/%.simd.run $$(DEPENDS)
-	-$(CONDITIONAL)
-trees/%.bm: trees/%.run $$(DEPENDS)
-	-$(BENCH)
+# Always run benchmarks
+.FORCE:
+
+# Run benchmarks
+.SECONDEXPANSION: # Adapt diff filenames
+%.bm: COMMAND = $(BENCH)
+%.simd.bm: COMMAND = if ! diff $*.run $*.simd.run >/dev/null; then $(BENCH); fi
+
+%.simd.bm: %.simd.run $$(DEPENDS) bencher .FORCE
+	-$(COMMAND)
+%.bm: %.run $$(DEPENDS) bencher .FORCE
+	-$(COMMAND)
