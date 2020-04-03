@@ -8,7 +8,7 @@ char *read_all(const char* filename, size_t *length_out, int check_length) {
 	// Attempt to open the file
 	FILE *f = fopen(filename, "r");
 	if (!f) {
-		perror("Open input");
+		perror(filename);
 		return NULL;
 	}
 
@@ -31,7 +31,7 @@ char *read_all(const char* filename, size_t *length_out, int check_length) {
 	// Attempt to read the file to memory
 	size_t read = fread(buffer, sizeof(char), length, f);
 	if (check_length && read != length) {
-		perror("Wrong length");
+		perror(filename);
 		free(buffer);
 		buffer = NULL;
 	}
