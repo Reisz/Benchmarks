@@ -72,6 +72,7 @@ pack: compiler_info.txt
 # Clean up
 clean:
 	@-rm -f bencher
+	@-rm -rf output
 	@-rm -f */*.run
 clean-benches:
 	@-rm -f */*.bm
