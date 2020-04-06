@@ -46,14 +46,7 @@ TIMEOUT := -t 300
 .PHONY: default bench-prep bench bench-test clean clean-benches clean-all
 
 default: $(BINARIES)
-
-bench-prep:
-	mkdir -p $(TMP_DIR)
-	sudo mount -t tmpfs tmpfs $(TMP_DIR)
-	sudo ./adjust-cpu-freq.sh $(FREQ)
-
-# Adjust cpu frequencies then run benchmarks
-bench: bench-prep $(BENCHES)
+bench: $(BENCHES)
 
 # Reduced settings for testing
 bench-test: FASTA    := 1000
@@ -78,6 +71,12 @@ clean-benches:
 	@-rm -f */*.bm
 clean-all: clean clean-benches
 	@-rm -rf output
+
+# Create tmpfs and set cpu frequencies
+bench-prep:
+	mkdir -p $(TMP_DIR)
+	sudo mount -t tmpfs tmpfs $(TMP_DIR)
+	sudo ./adjust-cpu-freq.sh $(FREQ)
 
 # Special rule for benchmarking utility
 bencher: bencher.c cpufreq.h fileutils.h
@@ -117,8 +116,6 @@ compiler_info.txt: .FORCE
 	@$(CC) --version | head -n 1 > $@
 	@$(CXX) --version | head -n 1 >> $@
 
-
-
 # fasta
 .SECONDARY: output/fasta-$(FASTA).txt
 fasta/%: DEPENDS = output/fasta-$(FASTA).txt
@@ -154,5 +151,5 @@ trees/%: BENCH = ./bencher -diff output/trees-$(TREES).txt $(TIMEOUT) $(BM_OUT) 
 
 %.simd.bm: %.simd.run $$(DEPENDS) bencher .FORCE
 	-$(COMMAND)
-%.bm: %.run $$(DEPENDS) bencher .FORCE
+%.bm: %.run $$(DEPENDS) bencher bench-prep .FORCE
 	-$(COMMAND)
