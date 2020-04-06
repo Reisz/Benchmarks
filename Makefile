@@ -17,12 +17,15 @@ endif
 # Compilers and flags
 CC  := gcc
 CXX := g++
+RC  := rustc
 # Indirect assignment to allow changing $(ARCH)
 CCFLAGS  = -pipe -Wall -O3 -fomit-frame-pointer -fopenmp -pthread -march=$(ARCH) -lm
 CXXFLAGS = $(CCFLAGS)
+RCFLAGS  = -C opt-level=3 -C lto -C codegen-units=1
 
 # Targets
-FILES    := $(wildcard */*.c) $(wildcard */*.cpp) $(wildcard */*.rs)
+RS_FILES := $(wildcard */*.rs)
+FILES    := $(wildcard */*.c) $(wildcard */*.cpp) $(RS_FILES)
 ifdef SIMD
 	FILES := $(FILES) $(addsuffix .simd, $(FILES))
 endif
@@ -43,9 +46,10 @@ BM_OUT = $@
 # Set a timeout of 5 min
 TIMEOUT := -t 300
 
-.PHONY: default bench-prep bench bench-test clean clean-benches clean-all
+.PHONY: default cross bench-prep bench bench-test clean clean-benches clean-all
 
 default: $(BINARIES)
+cross: riscv64.run.tar.gz armv7l.run.tar.gz
 bench: $(BENCHES)
 
 # Reduced settings for testing
@@ -93,6 +97,19 @@ bencher: bencher.c cpufreq.h fileutils.h
 %.cpp.simd.run: %.cpp
 	$(CXX) $(CXXFLAGS) $< -o $@
 
+# Cross compilation rules
+ifeq "$(MACHINE)" "x86_64"
+%.rs.riscv64.run: %.rs
+	$(RC) $(RCFLAGS) --target=riscv64gc-unknown-linux-gnu -C linker=riscv64-linux-gnu-gcc $< -o $@
+%.rs.armv7l.run: %.rs
+	$(RC) $(RCFLAGS) --target=armv7-unknown-linux-gnueabihf -C linker=arm-linux-gnueabihf-gcc $< -o $@
+%.rs.run: %.rs
+	$(RC) $(RCFLAGS) $< -o $@
+else
+%.rs.run: $(MACHINE).run.tar.gz
+	tar -xzvf $^ $*.rs.$(MACHINE).run
+	mv $*.rs.$(MACHINE).run $@
+endif
 
 # Diff files
 output/fasta-%.txt: fasta/1.c.run
@@ -153,3 +170,8 @@ trees/%: BENCH = ./bencher -diff output/trees-$(TREES).txt $(TIMEOUT) $(BM_OUT) 
 	-$(COMMAND)
 %.bm: %.run $$(DEPENDS) bencher bench-prep .FORCE
 	-$(COMMAND)
+
+# Packed cross compiled binaries
+CROSS_FILES = $(addsuffix .$(*F).run, $(RS_FILES))
+%.run.tar.gz: $$(CROSS_FILES)
+	tar -czvf $@ $(CROSS_FILES)
