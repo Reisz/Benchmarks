@@ -1,6 +1,7 @@
 # Use -march=native by default
 ARCH := native
-SIMD := true
+# TODO investiage why simd difference is almost non-existent
+# SIMD := true
 
 # Change flags based on node/machine
 NODE := $(shell uname -n)
