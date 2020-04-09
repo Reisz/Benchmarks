@@ -86,6 +86,7 @@ pack: compiler_info.txt
 clean:
 	@-rm -f bencher
 	@-rm -f */*.run
+	@-rm -rf cargo/target
 clean-benches:
 	@-rm -f */*.bm
 clean-all: clean clean-benches
