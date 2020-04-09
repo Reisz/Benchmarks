@@ -105,7 +105,7 @@ bencher: bencher.c cpufreq.h fileutils.h
 # Cross compilation rules
 ifeq "$(MACHINE)" "x86_64"
 RUST_TARGET :=
-RUST_DEPS   := target/deps
+RUST_DEPS   := cargo/target/deps
 CARGO_FLAGS := --release
 RUST_CRATES  = $(shell cat $(RUST_DEPS))
 
