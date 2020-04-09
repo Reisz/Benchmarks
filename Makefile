@@ -19,8 +19,11 @@ CC  := gcc
 CXX := g++
 RC  := rustc
 # Indirect assignment to allow changing $(ARCH)
-CCFLAGS  = -pipe -Wall -O3 -fomit-frame-pointer -fopenmp -pthread -march=$(ARCH) -lm
-CXXFLAGS = $(CCFLAGS)
+INCLUDES := -I/usr/include/re2 -I/usr/include/klib
+LINKER   := -lm -lgmp -lpcre #-lpcre2-8 -lboost_regex -lboost_thread -lre2
+APR_CFG  := $(shell apr-1-config --cflags --cppflags --includes --link-ld)
+CCFLAGS   = -pipe -Wall -O3 -fomit-frame-pointer -fopenmp -pthread -march=$(ARCH) $(INCLUDES) $(APR_CFG) $(LINKER)
+CXXFLAGS  = -std=c++17 $(CCFLAGS)
 
 # Rust specific
 RCFLAGS      = -C opt-level=3 -C codegen-units=1 # TODO -C lto
@@ -90,9 +93,9 @@ bencher: bencher.c cpufreq.h fileutils.h
 
 # Compile benchmark binaries
 %.c.run: %.c
-	$(CC) $(CCFLAGS) -fno-tree-vectorize $< -o $@
+	$(CC) $< -o $@ $(CCFLAGS) -fno-tree-vectorize
 %.cpp.run: %.cpp
-	$(CXX) $(CXXFLAGS) -fno-tree-vectorize $< -o $@
+	$(CXX) $< -o $@ $(CXXFLAGS) -fno-tree-vectorize
 
 %.c.simd.run: %.c
 	$(CC) $(CCFLAGS) $< -o $@
