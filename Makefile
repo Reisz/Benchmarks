@@ -21,7 +21,7 @@ RC  := rustc
 # Indirect assignment to allow changing $(ARCH)
 INCLUDES := -I/usr/include/re2 -I/usr/include/klib
 LINKER   := -lm -lgmp -lpcre #-lpcre2-8 -lboost_regex -lboost_thread -lre2
-APR_CFG  := $(shell apr-1-config --cflags --cppflags --includes --link-ld)
+APR_CFG  := #$(shell apr-1-config --cflags --cppflags --includes --link-ld)
 CCFLAGS   = -pipe -Wall -O3 -fomit-frame-pointer -fopenmp -pthread -march=$(ARCH) $(INCLUDES) $(APR_CFG) $(LINKER)
 CXXFLAGS  = -std=c++17 $(CCFLAGS)
 
