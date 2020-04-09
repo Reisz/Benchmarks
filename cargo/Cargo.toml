@@ -1,0 +1,22 @@
+[package]
+name = "main"
+version = "0.1.0"
+authors = ["Daniel Pfaff <daniel.pfaff@in.tum.de>"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+crossbeam-utils = "0.7.2"     # Utilities for concurrent programming
+fnv = "1.0.6"              # Fowler–Noll–Vo hash function
+futures = "0.3.4"                 # An implementation of futures and streams featuring zero allocations, composability, and itera…
+futures-cpupool = "0.1.8"           # An implementation of thread pools which hand out futures to the results of the computation …
+generic-array = "0.13.2"      # Generic types implementing functionality of arrays
+hashbrown = "0.7.1"                # A Rust port of Google's SwissTable hash map
+indexmap = "1.3.2"                 # A hash table with consistent order and fast iteration.  The indexmap is a hash table where t…
+num_cpus = "1.12.0"           # Get the number of CPUs on a machine.
+numeric-array = "0.4.2"    # Wrapper around generic-array that adds efficient numeric trait implementations
+num-traits = "0.2.11"              # Numeric traits for generic mathematics
+rayon = "1.3.0"               # Simple work-stealing parallelism for Rust
+regex = "1.3.6"                  # An implementation of regular expressions for Rust. This implementation uses finite automata an…
+toolshed = "0.8.1"    # Arena allocator and a handful of useful data structures
+typed-arena = "2.0.1"                 # The arena, a fast but limited type of allocator

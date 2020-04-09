@@ -8,6 +8,9 @@ bencher
 *.bm
 output
 
+# Rust
+cargo/target
+
 # Tmpfs
 tmp
 

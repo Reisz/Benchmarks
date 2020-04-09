@@ -21,7 +21,9 @@ RC  := rustc
 # Indirect assignment to allow changing $(ARCH)
 CCFLAGS  = -pipe -Wall -O3 -fomit-frame-pointer -fopenmp -pthread -march=$(ARCH) -lm
 CXXFLAGS = $(CCFLAGS)
-RCFLAGS  = -C opt-level=3 -C lto -C codegen-units=1
+
+# Rust specific
+RCFLAGS      = -C opt-level=3 -C codegen-units=1 # TODO -C lto
 
 # Targets
 RS_FILES := $(wildcard */*.rs)
@@ -99,12 +101,26 @@ bencher: bencher.c cpufreq.h fileutils.h
 
 # Cross compilation rules
 ifeq "$(MACHINE)" "x86_64"
-%.rs.riscv64.run: %.rs
-	$(RC) $(RCFLAGS) --target=riscv64gc-unknown-linux-gnu -C linker=riscv64-linux-gnu-gcc $< -o $@
-%.rs.armv7l.run: %.rs
-	$(RC) $(RCFLAGS) --target=armv7-unknown-linux-gnueabihf -C linker=arm-linux-gnueabihf-gcc $< -o $@
-%.rs.run: %.rs
-	$(RC) $(RCFLAGS) $< -o $@
+RUST_TARGET :=
+RUST_DEPS   := target/deps
+CARGO_FLAGS := --release
+RUST_CRATES  = $(shell cat $(RUST_DEPS))
+
+%.rs.riscv64.run: RUST_TARGET := -C linker=riscv64-linux-gnu-gcc --target=riscv64gc-unknown-linux-gnu
+%.rs.riscv64.run: RUST_DEPS = cargo/target/deps-riscv64
+
+%.rs.armv7l.run: RUST_TARGET := -C linker=arm-linux-gnueabihf-gcc --target=armv7-unknown-linux-gnueabihf
+%.rs.armv7l.run: RUST_DEPS = cargo/target/deps-armv7l
+
+# Needs to be one target to prevent concurrent cargo runs
+cargo/target/deps_marker: cargo/Cargo.toml cargo/Cargo.lock
+	$(MAKE) -C cargo target/deps RCFLAGS="$(RCFLAGS)" CARGO_FLAGS="$(CARGO_FLAGS)"
+	$(MAKE) -C cargo target/deps-riscv64 RCFLAGS="$(RCFLAGS) -C linker=riscv64-linux-gnu-gcc" CARGO_FLAGS="$(CARGO_FLAGS) --target=riscv64gc-unknown-linux-gnu --target-dir=target/riscv64"
+	$(MAKE) -C cargo target/deps-armv7l RCFLAGS="$(RCFLAGS) -C linker=arm-linux-gnueabihf-gcc" CARGO_FLAGS="$(CARGO_FLAGS) --target=armv7-unknown-linux-gnueabihf --target-dir=target/armv7l"
+	@touch $@
+
+%.rs.riscv64.run %.rs.armv7l.run %.rs.run: %.rs cargo/target/deps_marker
+	$(RC) $(RUST_TARGET) $(RCFLAGS) $(RUST_CRATES) $< -o $@
 else
 %.rs.run: $(MACHINE).run.tar.gz
 	tar -xzvf $^ $*.rs.$(MACHINE).run
@@ -173,5 +189,6 @@ trees/%: BENCH = ./bencher -diff output/trees-$(TREES).txt $(TIMEOUT) $(BM_OUT) 
 
 # Packed cross compiled binaries
 CROSS_FILES = $(addsuffix .$(*F).run, $(RS_FILES))
+.SECONDARY: $$(CROSS_FILES)
 %.run.tar.gz: $$(CROSS_FILES)
 	tar -czvf $@ $(CROSS_FILES)
