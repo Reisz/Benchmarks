@@ -87,6 +87,7 @@ clean:
 	@-rm -f bencher
 	@-rm -f */*.run
 	@-rm -rf cargo/target
+	@-rm -f riscv64.run.tar.gz armv7l.run.tar.gz
 clean-benches:
 	@-rm -f */*.bm
 clean-all: clean clean-benches
