@@ -41,11 +41,16 @@ BENCHES  := $(addsuffix .bm, $(FILES))
 TMP_DIR := tmp/
 
 # Benchmark settings
-FASTA    := 25000000
-NBODY    := 50000000
-REVCOMP  := 25000000
-SPECTRAL := 5500
-TREES    := 21
+FANNKUCH    := 12
+FASTA       := 25000000
+KNUCLEOTIDE := 25000000
+MANDELBROT  := 16000
+NBODY       := 50000000
+PI          := 10000
+REGEX       := 5000000
+REVCOMP     := 25000000
+SPECTRAL    := 5500
+TREES       := 21
 BM_OUT = $@
 
 # Set a timeout of 5 min
@@ -58,11 +63,16 @@ cross: riscv64.run.tar.gz armv7l.run.tar.gz
 bench: $(BENCHES)
 
 # Reduced settings for testing
-bench-test: FASTA    := 1000
-bench-test: NBODY    := 1000
-bench-test: REVCOMP  := 1000
-bench-test: SPECTRAL := 100
-bench-test: TREES    := 10
+bench-test: FANNKUCH    := 7
+bench-test: FASTA       := 1000
+bench-test: KNUCLEOTIDE := 1000
+bench-test: MANDELBROT  := 200
+bench-test: NBODY       := 1000
+bench-test: PI          := 30
+bench-test: REGEX       := 1000
+bench-test: REVCOMP     := 1000
+bench-test: SPECTRAL    := 100
+bench-test: TREES       := 10
 
 bench-test: BM_OUT := -
 bench-test: TIMEOUT := -t 5
@@ -131,13 +141,28 @@ else
 endif
 
 # Diff files
+output/fannkuch-%.txt: fannkuch/1.c.run
+	@mkdir -p output
+	./$< $* > $@
 output/fasta-%.txt: fasta/1.c.run
+	@mkdir -p output
+	./$< $* > $@
+output/knucleotide-%.txt: knucleotide/1.cpp.run output/fasta-%.txt
+	@mkdir -p output
+	cat output/fasta-$*.txt | ./$< 0 > $@
+output/mandelbrot-%.pbm: mandelbrot/2.c.run
 	@mkdir -p output
 	./$< $* > $@
 output/nbody-%.txt: nbody/1.c.run
 	@mkdir -p output
 	./$< $* > $@
-output/revcomp-%.txt: revcomp/4.c.run output/fasta-%.txt
+output/pi-%.txt: pi/1.c.run
+	@mkdir -p output
+	./$< $* > $@
+output/regex-%.txt: regex/2.c.run output/fasta-%.txt
+	@mkdir -p output
+	cat output/fasta-$*.txt | ./$< 0 > $@
+output/revcomp-%.txt: revcomp/2.c.run output/fasta-%.txt
 	@mkdir -p output
 	cat output/fasta-$*.txt | ./$< 0 > $@
 output/spectral-%.txt: spectral/1.c.run
@@ -152,15 +177,40 @@ compiler_info.txt: .FORCE
 	@$(CC) --version | head -n 1 > $@
 	@$(CXX) --version | head -n 1 >> $@
 
+# fannkuch
+.SECONDARY: output/fannkuch-$(FANNKUCH).txt
+fannkuch/%: DEPENDS = output/fannkuch-$(FANNKUCH).txt
+fannkuch/%: BENCH = ./bencher -diff output/fannkuch-$(FANNKUCH).txt $(TIMEOUT) $(BM_OUT) $< $(FANNKUCH)
+
 # fasta
 .SECONDARY: output/fasta-$(FASTA).txt
 fasta/%: DEPENDS = output/fasta-$(FASTA).txt
 fasta/%: BENCH = ./bencher -diff output/fasta-$(FASTA).txt $(TIMEOUT) $(BM_OUT) $< $(FASTA)
 
+# knucleotide
+.SECONDARY: output/fasta-$(KNUCLEOTIDE).txt output/knucleotide-$(KNUCLEOTIDE).txt
+knucleotide/%: DEPENDS = output/fasta-$(KNUCLEOTIDE).txt output/knucleotide-$(KNUCLEOTIDE).txt
+knucleotide/%: BENCH = ./bencher -i output/fasta-$(KNUCLEOTIDE).txt -diff output/knucleotide-$(KNUCLEOTIDE).txt $(TIMEOUT) $(BM_OUT) $< 0
+
+# mandelbrot
+.SECONDARY: output/mandelbrot-$(MANDELBROT).pbm
+mandelbrot/%: DEPENDS = output/mandelbrot-$(MANDELBROT).pbm
+mandelbrot/%: BENCH = ./bencher -diff output/mandelbrot-$(MANDELBROT).pbm $(TIMEOUT) $(BM_OUT) $< $(MANDELBROT)
+
 # nbody
 .SECONDARY: output/nbody-$(NBODY).txt
 nbody/%: DEPENDS = output/nbody-$(NBODY).txt
 nbody/%: BENCH = ./bencher -diff output/nbody-$(NBODY).txt -abserr 1.0e-8 $(TIMEOUT) $(BM_OUT) $< $(NBODY)
+
+# pi
+.SECONDARY: output/pi-$(PI).txt
+pi/%: DEPENDS = output/pi-$(PI).txt
+pi/%: BENCH = ./bencher -diff output/pi-$(PI).txt $(TIMEOUT) $(BM_OUT) $< $(PI)
+
+# revcomp
+.SECONDARY: output/fasta-$(REGEX).txt output/regex-$(REGEX).txt
+regex/%: DEPENDS = output/fasta-$(REGEX).txt output/regex-$(REGEX).txt
+regex/%: BENCH = ./bencher -i output/fasta-$(REGEX).txt -diff output/regex-$(REGEX).txt $(TIMEOUT) $(BM_OUT) $< 0
 
 # revcomp
 .SECONDARY: output/fasta-$(REVCOMP).txt output/revcomp-$(REVCOMP).txt
