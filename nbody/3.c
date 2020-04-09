@@ -131,4 +131,3 @@ int main(int argc, char **argv)
    printf("%.9f\n", energy(N, bodies));
    return 0;
 }
-

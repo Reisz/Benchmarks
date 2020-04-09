@@ -35,7 +35,7 @@ static inline
 void
 makeCumulative(std::vector<IUB>& i)
 {
-   std::partial_sum (i.begin(), i.end(), i.begin(),
+   std::partial_sum (i.begin(), i.end(), i.begin(), 
    [](IUB l,IUB r)->IUB{r.p+=l.p;return r;});
 }
 
@@ -74,7 +74,7 @@ make(char const * id, char const * desc, unsigned n, F f)
 struct Repeat{
    Repeat(const char* alu):i(0),size(strlen(alu)),alu(alu){}
    char operator()()
-   {
+   { 
       if(i >= size)i=0;
       return alu[i++];
    }
@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
 
    makeCumulative(iub);
    makeCumulative(homosapiens);
-
+   
    make("ONE", "Homo sapiens alu", n*2,Repeat(alu));
    make("TWO", "IUB ambiguity codes", n*3, Random(iub));
    make("THREE", "Homo sapiens frequency", n*5, Random(homosapiens));

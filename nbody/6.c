@@ -140,4 +140,3 @@ int main(int argc, char ** argv)
   printf ("%.9f\n", energy(NBODIES, bodies));
   return 0;
 }
-

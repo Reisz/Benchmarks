@@ -144,4 +144,3 @@ int main(int argc, char ** argv)
     printf("%.9f\n", energy());
     return 0;
 }
-

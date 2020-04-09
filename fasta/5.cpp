@@ -1,6 +1,6 @@
 /* The Computer Language Benchmarks Game
  https://salsa.debian.org/benchmarksgame-team/benchmarksgame/
-
+ 
  converted to C++ from D by Rafal Rusin
  modified by Vaclav Haisman
  modified by The Anh to compile with g++ 4.3.2
@@ -8,7 +8,7 @@
  modified by Kim Walisch
  modified by Tavis Bohne
  made multithreaded by Jeff Wofford on the model of fasta C gcc #7 and fasta Rust #2
-
+ 
  compiles with gcc fasta.cpp -std=c++11 -O2
  */
 
@@ -85,7 +85,7 @@ template<class iterator_type>
 class repeat_generator_type {
 public:
    using result_t = char;
-
+   
    repeat_generator_type(iterator_type first, iterator_type last)
    : first(first), current(first), last(last)
    { }
@@ -129,7 +129,7 @@ template<class iterator_type>
 class random_generator_type {
 public:
    using result_t = uint32_t;
-
+   
    random_generator_type(iterator_type first, iterator_type last)
    : first(first), last(last)
    { }
@@ -181,16 +181,16 @@ size_t fillBlock(size_t currentThread, iterator_type begin, generator_type& gene
          {
             g_fillThreadIndex = 0;
          }
-
+         
          // Do the work.
          const size_t valuesToGenerate = std::min(g_totalValuesToGenerate, VALUES_PER_BLOCK);
          g_totalValuesToGenerate -= valuesToGenerate;
-
+         
          for(size_t valuesRemaining = 0; valuesRemaining < valuesToGenerate; ++valuesRemaining)
          {
             *begin++ = generator();
          }
-
+         
          return valuesToGenerate;
       }
    }
@@ -204,7 +204,7 @@ size_t convertBlock(BlockIter begin, BlockIter end, CharIter outCharacter, conve
    for( ; begin != end; ++begin)
    {
       const uint32_t random = *begin;
-
+      
       *outCharacter++ = converter(random);
       if(++col >= CHARS_PER_LINE)
       {
@@ -218,7 +218,7 @@ size_t convertBlock(BlockIter begin, BlockIter end, CharIter outCharacter, conve
       //Last iteration didn't end the line, so finish the job.
       *outCharacter++ = '\n';
    }
-
+   
    return std::distance(beginCharacter, outCharacter);
 }
 
@@ -239,7 +239,7 @@ void writeCharacters(size_t currentThread, iterator_type begin, size_t count)
          {
             g_outThreadIndex = 0;
          }
-
+         
          // Do the work.
          std::fwrite( begin, count, 1, stdout );
          return;
@@ -253,18 +253,18 @@ void work(size_t currentThread, generator_type& generator, converter_type& conve
 {
    std::array< typename generator_type::result_t, VALUES_PER_BLOCK > block;
    std::array< char, CHARS_PER_BLOCK_INCL_NEWLINES > characters;
-
+   
    while(true)
    {
       const auto bytesGenerated = fillBlock(currentThread, block.begin(), generator);
-
+      
       if( bytesGenerated == 0 )
       {
          break;
       }
-
+      
       const auto charactersGenerated = convertBlock(block.begin(), block.begin() + bytesGenerated, characters.begin(), converter);
-
+      
       writeCharacters(currentThread, characters.begin(), charactersGenerated);
    }
 }
@@ -272,19 +272,19 @@ void work(size_t currentThread, generator_type& generator, converter_type& conve
 template <class generator_type, class converter_type >
 void make(const char* desc, int n, generator_type generator, converter_type converter) {
    std::cout << '>' << desc << '\n';
-
+   
    g_totalValuesToGenerate = n;
    g_outThreadIndex = -1;
    g_fillThreadIndex = 0;
-
+   
    std::vector< std::thread > threads(THREADS_TO_USE - 1);
    for(size_t i = 0; i < threads.size(); ++i)
    {
       threads[ i ] = std::thread{ std::bind( &work< generator_type, converter_type >, i, std::ref(generator), std::ref(converter)) };
    }
-
+   
    work(threads.size(), generator, converter);
-
+   
    for(auto& thread : threads)
    {
       thread.join();
@@ -298,10 +298,10 @@ int main(int argc, char *argv[])
       std::cerr << "usage: " << argv[0] << " length\n";
       return 1;
    }
-
+   
    make_cumulative(iub.begin(), iub.end());
    make_cumulative(homosapiens.begin(), homosapiens.end());
-
+   
    make("ONE Homo sapiens alu"      , n * 2,
        make_repeat_generator(alu.begin(), alu.end()),
        &convert_trivial );

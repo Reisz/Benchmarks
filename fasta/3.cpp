@@ -22,7 +22,7 @@ struct IUB
     char c;
 };
 
-std::array<char, 288> alu =
+std::array<char, 288> alu = 
 {
     "GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGG"
     "GAGGCCGAGGCGGGCGGATCACCTGAGGTCAGGAGTTCGAGA"
@@ -88,7 +88,7 @@ private:
     iterator_type last;
 };
 template<class iterator_type>
-repeat_functor_type<iterator_type>
+repeat_functor_type<iterator_type> 
     make_repeat_functor(iterator_type first, iterator_type last)
 {return repeat_functor_type<iterator_type>(first, last);}
 
@@ -109,7 +109,7 @@ private:
     iterator_type last;
 };
 template<class iterator_type>
-random_functor_type<iterator_type>
+random_functor_type<iterator_type> 
     make_random_functor(iterator_type first, iterator_type last)
 {return random_functor_type<iterator_type>(first, last);}
 
@@ -129,7 +129,7 @@ void make(const char* desc, int n, F functor)
     while (n > 0)
     {
         int thisline = n;
-        if (thisline > MAXLINE)
+        if (thisline > MAXLINE) 
             thisline = MAXLINE;
 
         for(int i=0; i<thisline; ++i)
@@ -154,11 +154,11 @@ int main(int argc, char *argv[])
     make_cumulative(homosapiens.begin(), homosapiens.end());
 
     //alu must drop the trailing zero stuck on by string literals :(
-    make("ONE Homo sapiens alu"      , n * 2,
-        make_repeat_functor(alu.begin(), alu.end()-1));
-    make("TWO IUB ambiguity codes"   , n * 3,
+    make("ONE Homo sapiens alu"      , n * 2, 
+        make_repeat_functor(alu.begin(), alu.end()-1)); 
+    make("TWO IUB ambiguity codes"   , n * 3, 
         make_random_functor(iub.begin(), iub.end()));
-    make("THREE Homo sapiens frequency", n * 5,
+    make("THREE Homo sapiens frequency", n * 5, 
         make_random_functor(homosapiens.begin(), homosapiens.end()));
     return 0;
 }

@@ -19,18 +19,14 @@ double eval_A(int i, int j) { return 1.0 / ((i+j)*(i+j+1)/2 + i + 1); }
 
 void eval_A_times_u(const vector<double> &u, vector<double> &Au)
 {
-//  for(int i=0; i<u.size(); i++)
-//    for(int j=0; j<u.size(); j++) Au[i] += eval_A(i,j) * u[j];
-  for(size_t i=0; i<u.size(); i++)
-    for(size_t j=0; j<u.size(); j++) Au[i] += eval_A(i,j) * u[j];
+  for(int i=0; i<u.size(); i++)
+    for(int j=0; j<u.size(); j++) Au[i] += eval_A(i,j) * u[j];
 }
 
 void eval_At_times_u(const vector<double> &u, vector<double> &Au)
 {
-//  for(int i=0; i<u.size(); i++)
-//    for(int j=0; j<u.size(); j++) Au[i] += eval_A(j,i) * u[j];
-  for(size_t i=0; i<u.size(); i++)
-    for(size_t j=0; j<u.size(); j++) Au[i] += eval_A(j,i) * u[j];
+  for(int i=0; i<u.size(); i++)
+    for(int j=0; j<u.size(); j++) Au[i] += eval_A(j,i) * u[j];
 }
 
 void eval_AtA_times_u(const vector<double> &u, vector<double> &AtAu)

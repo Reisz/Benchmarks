@@ -49,3 +49,4 @@ int main(int argc, char *argv[])
   printf("%0.9f\n",sqrt(vBv/vv));
   return 0;
 }
+

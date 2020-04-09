@@ -53,7 +53,7 @@ char selectRandom (const struct aminoacids * genelist, int count) {
 
 #define LINE_LENGTH (60)
 
-void makeRandomFasta (const char * id, const char * desc, const struct
+void makeRandomFasta (const char * id, const char * desc, const struct 
 aminoacids * genelist, int count, int n) {
    int todo = n;
    int i, m;
@@ -69,7 +69,7 @@ aminoacids * genelist, int count, int n) {
    }
 }
 
-void makeRepeatFasta (const char * id, const char * desc, const char *
+void makeRepeatFasta (const char * id, const char * desc, const char * 
 s, int n) {
    char * ss;
    int todo = n, k = 0, kn = strlen (s);
@@ -149,8 +149,9 @@ int main (int argc, char * argv[]) {
 
     makeRepeatFasta ("ONE", "Homo sapiens alu", alu, n*2);
     makeRandomFasta ("TWO", "IUB ambiguity codes", iub, IUB_LEN, n*3);
-    makeRandomFasta ("THREE", "Homo sapiens frequency", homosapiens,
+    makeRandomFasta ("THREE", "Homo sapiens frequency", homosapiens, 
 HOMOSAPIENS_LEN, n*5);
 
     return 0;
 }
+

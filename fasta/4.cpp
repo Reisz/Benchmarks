@@ -155,3 +155,5 @@ int main(int argc, char *argv[])
    makeRandomFasta("THREE", "Homo sapiens frequency", n*5, homosapiens,
       homosapiens + sizeof (homosapiens) / sizeof (IUB));
 }
+
+

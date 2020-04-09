@@ -1,4 +1,4 @@
-/* The Computer Language Benchmarks Game
+/* The Computer Language Benchmarks Game 
  * https://salsa.debian.org/benchmarksgame-team/benchmarksgame/
  *
  * Contributed by Jon Harrop
@@ -17,7 +17,7 @@ struct Node {
   ~Node() { delete l; delete r; }
   int check() const {
 	  if (l)
-		return l->check() + 1 + r->check();
+		return l->check() + 1 + r->check(); 
 	  else return 1;
   }
 };
@@ -60,3 +60,4 @@ int main(int argc, char *argv[]) {
 
   return 0;
 }
+
