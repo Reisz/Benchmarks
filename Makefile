@@ -97,7 +97,7 @@ clean-all: clean clean-benches
 bench-prep:
 	mkdir -p $(TMP_DIR)
 	sudo mount -t tmpfs tmpfs $(TMP_DIR)
-	sudo ./adjust-cpu-freq.sh $(FREQ)
+	sudo ./script/adjust-cpu-freq.sh $(FREQ)
 
 # Special rule for benchmarking utility
 bencher: bencher.c cpufreq.h fileutils.h
