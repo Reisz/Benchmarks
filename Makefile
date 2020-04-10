@@ -84,14 +84,14 @@ pack: compiler_info.txt
 
 # Clean up
 clean:
-	@-rm -f bencher
+	@-rm -rf output
 	@-rm -f benchmarks/*/*.run
+	@-rm -f benchmarks/*/*.log
 	@-rm -rf cargo/target
 	@-rm -f riscv64.run.tar.gz armv7l.run.tar.gz
 clean-benches:
 	@-rm -f benchmarks/*/*.bm
 clean-all: clean clean-benches
-	@-rm -rf output
 
 # Create tmpfs and set cpu frequencies
 bench-prep:
@@ -100,7 +100,7 @@ bench-prep:
 	sudo ./script/adjust-cpu-freq.sh $(FREQ)
 
 # Special rule for benchmarking utility
-bencher: bencher.c cpufreq.h fileutils.h
+output/bencher.run: bencher/bencher.c bencher/cpufreq.h bencher/fileutils.h
 	$(CC) $(CCFLAGS) -DISA_NAME='"$(MACHINE)"' $< -o $@
 
 # Compile benchmark binaries
@@ -182,52 +182,52 @@ compiler_info.txt: .FORCE
 # fannkuch
 .SECONDARY: output/fannkuch-$(FANNKUCH).txt
 benchmarks/fannkuch/%: DEPENDS = output/fannkuch-$(FANNKUCH).txt
-benchmarks/fannkuch/%: BENCH = ./bencher -diff output/fannkuch-$(FANNKUCH).txt $(TIMEOUT) $(BM_OUT) $< $(FANNKUCH)
+benchmarks/fannkuch/%: BENCH = ./output/bencher.run -diff output/fannkuch-$(FANNKUCH).txt $(TIMEOUT) $(BM_OUT) $< $(FANNKUCH)
 
 # fasta
 .SECONDARY: output/fasta-$(FASTA).txt
 benchmarks/fasta/%: DEPENDS = output/fasta-$(FASTA).txt
-benchmarks/fasta/%: BENCH = ./bencher -diff output/fasta-$(FASTA).txt $(TIMEOUT) $(BM_OUT) $< $(FASTA)
+benchmarks/fasta/%: BENCH = ./output/bencher.run -diff output/fasta-$(FASTA).txt $(TIMEOUT) $(BM_OUT) $< $(FASTA)
 
 # knucleotide
 .SECONDARY: output/fasta-$(KNUCLEOTIDE).txt output/knucleotide-$(KNUCLEOTIDE).txt
 benchmarks/knucleotide/%: DEPENDS = output/fasta-$(KNUCLEOTIDE).txt output/knucleotide-$(KNUCLEOTIDE).txt
-benchmarks/knucleotide/%: BENCH = ./bencher -i output/fasta-$(KNUCLEOTIDE).txt -diff output/knucleotide-$(KNUCLEOTIDE).txt $(TIMEOUT) $(BM_OUT) $< 0
+benchmarks/knucleotide/%: BENCH = ./output/bencher.run -i output/fasta-$(KNUCLEOTIDE).txt -diff output/knucleotide-$(KNUCLEOTIDE).txt $(TIMEOUT) $(BM_OUT) $< 0
 
 # mandelbrot
 .SECONDARY: output/mandelbrot-$(MANDELBROT).pbm
 benchmarks/mandelbrot/%: DEPENDS = output/mandelbrot-$(MANDELBROT).pbm
-benchmarks/mandelbrot/%: BENCH = ./bencher -diff output/mandelbrot-$(MANDELBROT).pbm $(TIMEOUT) $(BM_OUT) $< $(MANDELBROT)
+benchmarks/mandelbrot/%: BENCH = ./output/bencher.run -diff output/mandelbrot-$(MANDELBROT).pbm $(TIMEOUT) $(BM_OUT) $< $(MANDELBROT)
 
 # nbody
 .SECONDARY: output/nbody-$(NBODY).txt
 benchmarks/nbody/%: DEPENDS = output/nbody-$(NBODY).txt
-benchmarks/nbody/%: BENCH = ./bencher -diff output/nbody-$(NBODY).txt -abserr 1.0e-8 $(TIMEOUT) $(BM_OUT) $< $(NBODY)
+benchmarks/nbody/%: BENCH = ./output/bencher.run -diff output/nbody-$(NBODY).txt -abserr 1.0e-8 $(TIMEOUT) $(BM_OUT) $< $(NBODY)
 
 # pi
 .SECONDARY: output/pi-$(PI).txt
 benchmarks/pi/%: DEPENDS = output/pi-$(PI).txt
-benchmarks/pi/%: BENCH = ./bencher -diff output/pi-$(PI).txt $(TIMEOUT) $(BM_OUT) $< $(PI)
+benchmarks/pi/%: BENCH = ./output/bencher.run -diff output/pi-$(PI).txt $(TIMEOUT) $(BM_OUT) $< $(PI)
 
 # revcomp
 .SECONDARY: output/fasta-$(REGEX).txt output/regex-$(REGEX).txt
 benchmarks/regex/%: DEPENDS = output/fasta-$(REGEX).txt output/regex-$(REGEX).txt
-benchmarks/regex/%: BENCH = ./bencher -i output/fasta-$(REGEX).txt -diff output/regex-$(REGEX).txt $(TIMEOUT) $(BM_OUT) $< 0
+benchmarks/regex/%: BENCH = ./output/bencher.run -i output/fasta-$(REGEX).txt -diff output/regex-$(REGEX).txt $(TIMEOUT) $(BM_OUT) $< 0
 
 # revcomp
 .SECONDARY: output/fasta-$(REVCOMP).txt output/revcomp-$(REVCOMP).txt
 benchmarks/revcomp/%: DEPENDS = output/fasta-$(REVCOMP).txt output/revcomp-$(REVCOMP).txt
-benchmarks/revcomp/%: BENCH = ./bencher -i output/fasta-$(REVCOMP).txt -diff output/revcomp-$(REVCOMP).txt $(TIMEOUT) $(BM_OUT) $< 0
+benchmarks/revcomp/%: BENCH = ./output/bencher.run -i output/fasta-$(REVCOMP).txt -diff output/revcomp-$(REVCOMP).txt $(TIMEOUT) $(BM_OUT) $< 0
 
 # spectral
 .SECONDARY: output/spectral-$(SPECTRAL).txt
 benchmarks/spectral/%: DEPENDS = output/spectral-$(SPECTRAL).txt
-benchmarks/spectral/%: BENCH = ./bencher -diff output/spectral-$(SPECTRAL).txt $(TIMEOUT) $(BM_OUT) $< $(SPECTRAL)
+benchmarks/spectral/%: BENCH = ./output/bencher.run -diff output/spectral-$(SPECTRAL).txt $(TIMEOUT) $(BM_OUT) $< $(SPECTRAL)
 
 # trees
 .SECONDARY: output/trees-$(TREES).txt
 benchmarks/trees/%: DEPENDS = output/trees-$(TREES).txt
-benchmarks/trees/%: BENCH = ./bencher -diff output/trees-$(TREES).txt $(TIMEOUT) $(BM_OUT) $< $(TREES)
+benchmarks/trees/%: BENCH = ./output/bencher.run -diff output/trees-$(TREES).txt $(TIMEOUT) $(BM_OUT) $< $(TREES)
 
 # Always run benchmarks
 .FORCE:
@@ -237,9 +237,9 @@ benchmarks/trees/%: BENCH = ./bencher -diff output/trees-$(TREES).txt $(TIMEOUT)
 %.bm: COMMAND = $(BENCH)
 %.simd.bm: COMMAND = if ! diff $*.run $*.simd.run >/dev/null; then $(BENCH); fi
 
-%.simd.bm: %.simd.run $$(DEPENDS) bencher .FORCE
+%.simd.bm: %.simd.run $$(DEPENDS) output/bencher.run .FORCE
 	-$(COMMAND)
-%.bm: %.run $$(DEPENDS) bencher bench-prep .FORCE
+%.bm: %.run $$(DEPENDS) output/bencher.run bench-prep .FORCE
 	-$(COMMAND)
 
 # Packed cross compiled binaries
