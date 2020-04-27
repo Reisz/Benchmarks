@@ -50,7 +50,7 @@ plot for [COL=2:4:2] 'output/data/combined.dat' using COL:xtic(1) title col
 set output "output/plots/fastest.pdf"
 plot for [COL=3:5:2] 'output/data/combined.dat' using COL:xtic(1) title col
 
-set terminal png enhanced background rgb "white"
+set terminal png enhanced background rgb "white" size 1100, 500
 
 set output "output/plots/average.png"
 plot for [COL=2:4:2] 'output/data/combined.dat' using COL:xtic(1) title col
