@@ -94,7 +94,9 @@ The script `plots/all.plt` will create PDF plots for all benchmark types (curren
 
 ## Results
 ### Average
+Average total program time, normailzed to 1 GHz.
 ![Average](../plots/average.png?raw=true)
 
 ### Fastest
+Fastest total program time, normalized to 1 Ghz.
 ![Fastest](../plots/fastest.png?raw=true)
