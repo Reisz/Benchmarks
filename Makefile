@@ -56,7 +56,7 @@ BM_OUT = $@
 # Set a timeout of 5 min
 TIMEOUT := -t 300
 
-.PHONY: default cross bench-prep bench bench-test clean clean-benches clean-all
+.PHONY: default cross bench-prep bench bench-test pack clean clean-benches clean-all
 
 default: $(BINARIES)
 cross: riscv64.run.tar.gz armv7l.run.tar.gz
