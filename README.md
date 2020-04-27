@@ -91,3 +91,10 @@ Geometric mean is used, as it works correctly with normalized values (see [Flemm
 
 ### Gnuplot script
 The script `plots/all.plt` will create PDF plots for all benchmark types (currently hard-coded), as well as `output/plots/average.pdf` and `output/plots/fastest.pdf` from `output/data/combined.dat`.
+
+## Results
+### Average
+![Average](../plots/average.png?raw=true)
+
+### Fastest
+![Fastest](../plots/fastest.png?raw=true)
