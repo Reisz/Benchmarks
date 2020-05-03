@@ -90,9 +90,11 @@ The `plots/prepare.lua` script should be called from the `plots` directory using
 Geometric mean is used, as it works correctly with normalized values (see [Flemming and Wallace](plots/paper4.pdf)).
 
 ### Gnuplot script
-The script `plots/all.plt` will create PDF plots for all benchmark types (currently hard-coded), as well as `output/plots/average.pdf` and `output/plots/fastest.pdf` from `output/data/combined.dat`.
+The script `plots/all.plt` will create PDF plots for all benchmark types (currently hard-coded), as well as `output/plots/average.pdf` and `output/plots/fastest.pdf` from `output/data/combined.dat`. The raw data can be found in the [plots](../plots) branch.
 
 ## Results
+The following plots show benchmark results for the HiFive Freedom Unleashed (`riscv`) and the Raspberry Pi 4 Model B (`pi`). The compiler versions are `9.1.0` for the HiFive and `8.3.0` for the Pi.
+
 ### Average
 Average total program time, normalized to 1 GHz.
 ![Average](../plots/average.png?raw=true)
