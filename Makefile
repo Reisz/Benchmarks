@@ -241,9 +241,9 @@ benchmarks/trees/%: BENCH = ./output/bencher.run -diff output/trees-$(TREES).txt
 %.simd.bm: COMMAND = if ! diff $*.run $*.simd.run >/dev/null; then $(BENCH); fi
 
 %.simd.bm: %.simd.run $$(DEPENDS) output/bencher.run .FORCE
-	-$(COMMAND)
+	-$(COMMAND) 2>$<.log
 %.bm: %.run $$(DEPENDS) output/bencher.run bench-prep .FORCE
-	-$(COMMAND)
+	-$(COMMAND) 2>$<.log
 
 # Packed cross compiled binaries
 CROSS_FILES = $(addsuffix .$(*F).run, $(RS_FILES))

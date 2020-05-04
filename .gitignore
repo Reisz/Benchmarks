@@ -5,6 +5,7 @@
 # Output
 *.run
 *.bm
+*.log
 output
 
 # Rust
