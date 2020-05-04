@@ -20,7 +20,7 @@
 #define STRINGIFY(arg) STRINGIFY_HELPER(arg)
 
 int usage_error() {
-	fprintf(stderr, "Argument format is [-i <input-file>] [-diff <diff-file> [-abserr <absolute-error>]] [-t <timeout-secs>] <output-file> <binary> [<binary arguments>...]\n");
+	fprintf(stderr, "Argument format is [-i <input-file>] [-diff <diff-file> [-abserr <absolute-error> | -bin]] [-t <timeout-secs>] <output-file> <binary> [<binary arguments>...]\n");
 	return EXIT_FAILURE;
 }
 
@@ -33,6 +33,7 @@ struct Diff {
 	size_t length;
 	char *text;
 	long double abserr;
+	char binary;
 };
 
 #define DIFF_COUNT 3
@@ -40,6 +41,24 @@ int check_output(FILE *file, const struct Diff *diff) {
 	// Don't do anything when no diff is provided
 	if (!diff->text)
 		return 1;
+
+	// Special case for binary data (potentially containing \0)
+	if (diff->binary) {
+		int ok = 1;
+		size_t length;
+		char *comp = read_all_ptr(file, &length, 1, "Buffer");
+
+		if (length != diff->length) {
+			fprintf(stderr, "Error: Binary data lengths differ. (Expected %ld, got %ld)\n", diff->length, length);
+			ok = 0;
+		} else if (memcmp(diff->text, comp, length) != 0) {
+			fprintf(stderr, "Error: Binary data mismatch.\n");
+			ok = 0;
+		}
+
+		free(comp);
+		return ok;
+	}
 
 	// Variables for getline
 	char *line = NULL;
@@ -298,7 +317,7 @@ int main(int argc, char** argv) {
 		return usage_error();
 
 	// Optional file to diff output against and optional absolute error for numeric diff.
-	struct Diff diff = { 0, NULL, 0.0 };
+	struct Diff diff = { 0, NULL, 0.0, 0 };
 	if (strncmp("-diff", argv[0], 5) == 0) {
 		// Take "-diff" and "<diff-file>" from argv, read file to memory
 		diff.text = read_all(argv[1], &diff.length, 1);
@@ -315,6 +334,10 @@ int main(int argc, char** argv) {
 			sscanf(argv[1], "%Lf", &diff.abserr);
 			argc -= 2;
 			argv += 2;
+		} else if (strncmp("-bin", argv[0], 4) == 0) {
+			diff.binary = 1;
+			argc -= 1;
+			argv += 1;
 		}
 	}
 

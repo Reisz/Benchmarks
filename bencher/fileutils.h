@@ -4,14 +4,7 @@
 #include <stdio.h>
 #include <malloc.h>
 
-char *read_all(const char* filename, size_t *length_out, int check_length) {
-	// Attempt to open the file
-	FILE *f = fopen(filename, "r");
-	if (!f) {
-		perror(filename);
-		return NULL;
-	}
-
+char *read_all_ptr(FILE* f, size_t *length_out, int check_length, const char *filename) {
 	// Get total length
 	fseek(f, 0, SEEK_END);
 	size_t length = (size_t) ftell(f);
@@ -22,10 +15,10 @@ char *read_all(const char* filename, size_t *length_out, int check_length) {
 		*length_out = length;
 
 	// Allocate buffer for file contents and terminating '\0'
-	char *buffer = malloc(sizeof(char) * (length + 1));
+	char *buffer = (char *) malloc(sizeof(char) * (length + 1));
 	if (!buffer) {
 		fprintf(stderr, "Could not allocate memory to hold %s", filename);
-		goto end; // close file & return
+		return NULL;
 	}
 
 	// Attempt to read the file to memory
@@ -36,12 +29,24 @@ char *read_all(const char* filename, size_t *length_out, int check_length) {
 		buffer = NULL;
 	}
 
-end:
+	return buffer;
+}
+
+char *read_all(const char* filename, size_t *length_out, int check_length)  {
+	// Attempt to open the file
+	FILE *f = fopen(filename, "r");
+	if (!f) {
+		perror(filename);
+		return NULL;
+	}
+
+	char *result = read_all_ptr(f, length_out, check_length, filename);
+
 	// Attempt to close the file
 	if (fclose(f))
 		perror(filename);
 
-	return buffer;
+	return result;
 }
 
 #endif // _FILEUTILS_H

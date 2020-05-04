@@ -199,7 +199,7 @@ benchmarks/knucleotide/%: BENCH = ./output/bencher.run -i output/fasta-$(KNUCLEO
 # mandelbrot
 .SECONDARY: output/mandelbrot-$(MANDELBROT).pbm
 benchmarks/mandelbrot/%: DEPENDS = output/mandelbrot-$(MANDELBROT).pbm
-benchmarks/mandelbrot/%: BENCH = ./output/bencher.run -diff output/mandelbrot-$(MANDELBROT).pbm $(TIMEOUT) $(BM_OUT) $< $(MANDELBROT)
+benchmarks/mandelbrot/%: BENCH = ./output/bencher.run -diff output/mandelbrot-$(MANDELBROT).pbm -bin $(TIMEOUT) $(BM_OUT) $< $(MANDELBROT)
 
 # nbody
 .SECONDARY: output/nbody-$(NBODY).txt
