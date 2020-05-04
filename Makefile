@@ -166,7 +166,7 @@ output/pi-%.txt: benchmarks/pi/1.c.run
 output/regex-%.txt: benchmarks/regex/2.c.run output/fasta-%.txt
 	@mkdir -p output
 	cat output/fasta-$*.txt | ./$< 0 > $@
-output/revcomp-%.txt: benchmarks/revcomp/2.c.run output/fasta-%.txt
+output/revcomp-%.txt: benchmarks/revcomp/1.cpp.run output/fasta-%.txt
 	@mkdir -p output
 	cat output/fasta-$*.txt | ./$< 0 > $@
 output/spectral-%.txt: benchmarks/spectral/1.c.run
