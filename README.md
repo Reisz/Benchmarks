@@ -46,7 +46,17 @@ Benchmarks are usually run using the `bench` make target (should not be parallel
 
 The make target `bench-test` is available to run all benchmarks with reduced inputs, which allows testing all program binaries for functionality.
 
-### Benchmark procedure
+### SIMD Benchmarks
+The Makefile also contains facilities to disable vectorization during compilation. This was intended to allow fair comparison to platforms that do not support such instructions (for example RISC-V). However, the current efforts to turn of vectorization did not result in a significant change in benchmark runtime.
+
+#### SIMD Benchmark Procedure
+By default, the Makefile contains the variable `SIMD`, which can be unset for platforms that do not support vector instructions.
+
+If this variable is set, the Makefile will duplicate all the target programs with an additional `.simd` suffix. During compilation, files with the `.run.simd` suffix will be compiled using the regular argument set, while compilation for files just ending in `.run` will have an additional `-fno-tree-vectorize` argument.
+
+The benchmarking implementation will change the bencher command for `.simd` files to include an if statement which prevents benchmarking in case the flag did not change the resulting binary executable.
+
+### Benchmark Procedure
 The `bencher` binary is responsible for most of the benchmark procedure. It will go through the following steps for each program:
 1. Ensure proper CPU scaling setup
   - For `userspace` governor: denotes target frequency
