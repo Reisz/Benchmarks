@@ -12,7 +12,7 @@ This project contains the following directories:
 - **tmp**&emsp;Mounting directory for a tmpfs file-system to hold program output during benchmark runs (see [Benchmark Procedure](#benchmark-procedure))
 
 ## Setup
-All setup steps are currently tracked in the repository, configured for the HiFive Freedom Unleashed and the RaspberryPi 4B.
+Some files in this repository are a result of executing the following steps. These files are currently configured for the HiFive Freedom Unleashed and the RaspberryPi 4B.
 
 ### Selecting Programs
 Programs are selected from the extracted [zip of all programs](https://salsa.debian.org/benchmarksgame-team/benchmarksgame#what-else) using `script/extract.lua`.
