@@ -240,7 +240,7 @@ benchmarks/trees/%: BENCH = ./output/bencher.run -diff output/trees-$(TREES).txt
 %.bm: COMMAND = $(BENCH)
 %.simd.bm: COMMAND = if ! diff $*.run $*.simd.run >/dev/null; then $(BENCH); fi
 
-%.simd.bm: %.simd.run $$(DEPENDS) output/bencher.run .FORCE
+%.simd.bm: %.simd.run $$(DEPENDS) output/bencher.run bench-prep .FORCE
 	-$(COMMAND) 2>$<.log
 %.bm: %.run $$(DEPENDS) output/bencher.run bench-prep .FORCE
 	-$(COMMAND) 2>$<.log
