@@ -59,9 +59,9 @@ void internal_error(size_t diff_line, char *diff_text, char *line, long double e
         *ok = 0;
     }
 
-    if (*error_count <= DIFF_COUNT) {
-        fprintf(stderr, "  Expected: %.*s", (int) diff_line, diff_text);
-        fprintf(stderr, "  Actual:   %s", line);
+    if (*error_count < DIFF_COUNT) {
+        fprintf(stderr, "  Baseline: %.*s", (int) diff_line, diff_text);
+        fprintf(stderr, "  Current:  %s", line);
         if (err != 0.0)
             fprintf(stderr, "  Error:     %Lg\n", err);
     }
@@ -69,8 +69,14 @@ void internal_error(size_t diff_line, char *diff_text, char *line, long double e
 }
 
 void ending_errors(char *diff_text, const struct Diff *diff, int error_count, int *ok) {
-	if (error_count > DIFF_COUNT)
-		fprintf(stderr, "... %d more errors.\n", error_count - DIFF_COUNT);
+	if (error_count > DIFF_COUNT) {
+        int remaining = error_count - DIFF_COUNT;
+
+        if (remaining == 1)
+            fprintf(stderr, "... 1 more error.\n");
+        else
+        	fprintf(stderr, "... %d more errors.\n",remaining);
+    }
 
 	// Print error, when output ended before diff
 	if (diff_text != diff->text + diff->length) {
