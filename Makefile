@@ -102,6 +102,7 @@ bench-prep:
 
 # Special rule for benchmarking utility
 output/bencher.run: bencher/bencher.c bencher/cpufreq.h bencher/fileutils.h
+	@mkdir -p output
 	$(CC) $(CCFLAGS) -DISA_NAME='"$(MACHINE)"' $< -o $@
 
 # Compile benchmark binaries
