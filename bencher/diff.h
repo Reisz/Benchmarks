@@ -37,13 +37,13 @@ void early_end_error(char **line, size_t *len, FILE *file, int *ok) {
     *ok = 0;
 
     fprintf(stderr, "Error: Expected result ended before end of actual result.\n");
-    fprintf(stderr, "Remaining:\n%s", *line);
+    fprintf(stderr, "Remaining:\n  %s", *line);
 
-    int linecnt = 0;
+    int linecnt = 1;
 	ssize_t read;
     while ((read = getline(line, len, file)) != -1) {
-        if (linecnt <= DIFF_COUNT)
-            fprintf(stderr, "%s", *line);
+        if (linecnt < DIFF_COUNT)
+            fprintf(stderr, "  %s", *line);
         ++linecnt;
     }
 
