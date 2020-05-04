@@ -101,7 +101,8 @@ bench-prep:
 	sudo ./script/adjust-cpu-freq.sh $(FREQ)
 
 # Special rule for benchmarking utility
-output/bencher.run: bencher/bencher.c bencher/cpufreq.h bencher/fileutils.h
+BENCHER_FILES := $(wildcard bencher/*)
+output/bencher.run: $(BENCHER_FILES)
 	@mkdir -p output
 	$(CC) $(CCFLAGS) -DISA_NAME='"$(MACHINE)"' $< -o $@
 
