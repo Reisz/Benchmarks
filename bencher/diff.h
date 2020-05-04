@@ -33,6 +33,17 @@ int binary_diff(FILE *file, const struct Diff *diff) {
 }
 
 #define DIFF_COUNT 3
+void more_errors(int count, const char *text) {
+    if (count > DIFF_COUNT) {
+        int remaining = count - DIFF_COUNT;
+
+        if (remaining == 1)
+            fprintf(stderr, "... 1 additional %s.\n", text);
+        else
+            fprintf(stderr, "... %d additional %ss.\n", remaining, text);
+    }
+}
+
 void early_end_error(char **line, size_t *len, FILE *file, int *ok) {
     *ok = 0;
 
@@ -47,10 +58,7 @@ void early_end_error(char **line, size_t *len, FILE *file, int *ok) {
         ++linecnt;
     }
 
-    if (linecnt > DIFF_COUNT)
-        fprintf(stderr, "... %d more lines.\n", linecnt - DIFF_COUNT);
-
-    fprintf(stderr, "\n");
+    more_errors(linecnt, "line");
 }
 
 void internal_error(size_t diff_line, char *diff_text, char *line, long double err, int *ok, int *error_count) {
@@ -69,21 +77,26 @@ void internal_error(size_t diff_line, char *diff_text, char *line, long double e
 }
 
 void ending_errors(char *diff_text, const struct Diff *diff, int error_count, int *ok) {
-	if (error_count > DIFF_COUNT) {
-        int remaining = error_count - DIFF_COUNT;
-
-        if (remaining == 1)
-            fprintf(stderr, "... 1 more error.\n");
-        else
-        	fprintf(stderr, "... %d more errors.\n",remaining);
-    }
+    more_errors(error_count, "error");
 
 	// Print error, when output ended before diff
 	if (diff_text != diff->text + diff->length) {
         *ok = 0;
 
         fprintf(stderr, "Error: Actual result ended before end of expected result.\n");
-        fprintf(stderr, "Remaining:\n%s\n", diff_text);
+        fprintf(stderr, "Remaining:\n");
+
+        int linecnt = 0;
+        char *line_end;
+        while ((line_end = strchr(diff_text, '\n'))) {
+            if (linecnt < DIFF_COUNT)
+                fprintf(stderr, "  %.*s\n", (int) (line_end - diff_text), diff_text);
+            ++linecnt;
+
+            diff_text = line_end + 1;
+        }
+
+        more_errors(linecnt, "line");
     }
 }
 
