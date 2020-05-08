@@ -90,10 +90,13 @@ clean:
 	@-rm -f benchmarks/*/*.run
 	@-rm -f benchmarks/*/*.log
 	@-rm -rf cargo/target
+ifeq "$(MACHINE)" "x86_64"
 	@-rm -f riscv64.run.tar.gz armv7l.run.tar.gz
+endif
 clean-benches:
 	@-rm -f benchmarks/*/*.bm
 clean-all: clean clean-benches
+	@-rm -f riscv64.run.tar.gz armv7l.run.tar.gz
 
 # Create tmpfs and set cpu frequencies
 bench-prep:
