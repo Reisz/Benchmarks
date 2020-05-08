@@ -18,11 +18,12 @@ endif
 CC  := gcc
 CXX := g++
 RC  := rustc
-# Indirect assignment to allow changing $(ARCH)
-INCLUDES := -I/usr/include/re2 -I/usr/include/klib
+INCLUDES := re2 klib
+SPATHS   := $(addprefix -I/usr/include/, $(INCLUDES)) $(addprefix -I/usr/local/include/, $(INCLUDES))
 LINKER   := -lm -lgmp -lpcre -lre2 #-lpcre2-8 -lboost_regex -lboost_thread
 APR_CFG  := #$(shell apr-1-config --cflags --cppflags --includes --link-ld)
-CCFLAGS   = -pipe -Wall -O3 -fomit-frame-pointer -fopenmp -pthread -march=$(ARCH) $(INCLUDES) $(APR_CFG) $(LINKER)
+# Indirect assignment to allow changing $(ARCH)
+CCFLAGS   = -pipe -Wall -O3 -fomit-frame-pointer -fopenmp -pthread -march=$(ARCH) $(SPATHS) $(APR_CFG) $(LINKER)
 CXXFLAGS  = -std=c++17 $(CCFLAGS)
 
 # Rust specific
