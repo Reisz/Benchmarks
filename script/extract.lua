@@ -47,7 +47,6 @@ local c_exclude = {
     "__builtin",
     "pcre_jit_exec",
     "#include%s*<omp.h>", -- TODO
-    "#include%s*<khash.h>", -- TODO
     "#include%s*<apr_pools.h>", -- TODO
     "#include%s*<boost", -- TODO
     "#include%s*\"pcre2.h\"", -- TODO
