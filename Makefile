@@ -138,7 +138,8 @@ cargo/target/deps_marker: cargo/Cargo.toml cargo/Cargo.lock
 	@touch $@
 
 %.rs.riscv64.run %.rs.armv7l.run %.rs.run: %.rs cargo/target/deps_marker
-	$(RC) $(RUST_TARGET) $(RCFLAGS) $(RUST_CRATES) $< -o $@
+	@echo "$(RC) $(RUST_TARGET) $(RCFLAGS) <...> $< -o $@"
+	@$(RC) $(RUST_TARGET) $(RCFLAGS) $(RUST_CRATES) $< -o $@
 else
 %.rs.run: $(MACHINE).run.tar.gz
 	tar -xzvf $^ $*.rs.$(MACHINE).run
