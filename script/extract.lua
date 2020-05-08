@@ -46,7 +46,6 @@ local c_exclude = {
     "#include%s*<xmmintrin.h>",
     "__builtin",
     "pcre_jit_exec",
-    "#include%s*<re2.h>", -- TODO
     "#include%s*<omp.h>", -- TODO
     "#include%s*<khash.h>", -- TODO
     "#include%s*<apr_pools.h>", -- TODO
