@@ -45,11 +45,9 @@ local c_exclude = {
     "#include%s*<emmintrin.h>",
     "#include%s*<xmmintrin.h>",
     "__builtin",
-    "pcre_jit_exec",
     "#include%s*<omp.h>", -- TODO
     "#include%s*<apr_pools.h>", -- TODO
     "#include%s*<boost", -- TODO
-    "#include%s*\"pcre2.h\"", -- TODO
 }
 
 local rs_exclude = {
