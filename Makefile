@@ -79,11 +79,6 @@ bench-test: BM_OUT := -
 bench-test: TIMEOUT := -t 5
 bench-test: bench
 
-# Pack bechmark results
-pack: compiler_info.txt
-	tar -czvf $(NODE)_$(shell date -I).tar.gz benchmarks/*/*.bm compiler_info.txt
-	rm compiler_info.txt
-
 # Clean up
 clean:
 	@-rm -rf output
@@ -181,11 +176,6 @@ output/spectral-%.txt: benchmarks/spectral/1.c.run
 output/trees-%.txt: benchmarks/trees/1.c.run
 	@mkdir -p output
 	./$< $* > $@
-
-# Collect compiler versions
-compiler_info.txt: .FORCE
-	@$(CC) --version | head -n 1 > $@
-	@$(CXX) --version | head -n 1 >> $@
 
 # fannkuch
 .SECONDARY: output/fannkuch-$(FANNKUCH).txt
