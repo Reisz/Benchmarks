@@ -81,7 +81,7 @@ bench-test: bench
 
 # Pack bechmark results
 pack: compiler_info.txt
-	tar -czvf $(NODE)_$(shell date -I).tar.gz */*.bm compiler_info.txt
+	tar -czvf $(NODE)_$(shell date -I).tar.gz benchmarks/*/*.bm compiler_info.txt
 	rm compiler_info.txt
 
 # Clean up
