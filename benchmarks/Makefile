@@ -8,6 +8,6 @@ all: $(DATA) compiler_info.txt
 	rm compiler_info.txt
 
 # Collect compiler versions
-compiler_info.txt: .FORCE
+compiler_info.txt:
 	@$(CC) --version | head -n 1 > $@
 	@$(CXX) --version | head -n 1 >> $@
