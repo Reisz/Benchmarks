@@ -7,7 +7,7 @@ authors = ["Daniel Pfaff <daniel.pfaff@in.tum.de>"]
 
 [dependencies]
 crossbeam-utils = "0.7.2"     # Utilities for concurrent programming
-fnv = "1.0.6"              # Fowler–Noll–Vo hash function
+fnv = "1.0.7"              # Fowler–Noll–Vo hash function
 generic-array = "0.14.1"      # Generic types implementing functionality of arrays
 hashbrown = "0.7.2"                # A Rust port of Google's SwissTable hash map
 num_cpus = "1.13.0"           # Get the number of CPUs on a machine.
