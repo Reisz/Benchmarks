@@ -48,7 +48,6 @@ local c_exclude = {
     "__builtin",
     "pcre_jit_exec", -- not available on hifive unleashed
     "#include%s*<omp.h>", -- TODO
-    "#include%s*<apr_pools.h>", -- TODO
 }
 
 local rs_exclude = {
