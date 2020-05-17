@@ -3,7 +3,6 @@ table.remove(arg, 1)
 
 local existing_dirs = {}
 local function accept(f, dir, num, type)
-    print(("%s/%s.%s"):format(dir, num, type))
     if not existing_dirs[dir] then
         os.execute(('rm -r "%s/%s"'):format(target, dir))
         os.execute(('mkdir -p "%s/%s"'):format(target, dir))
@@ -13,12 +12,14 @@ local function accept(f, dir, num, type)
     os.execute(('cp "%s" "%s/%s/%s.%s"'):format(f, target, dir, num, type))
 end
 
-local rejected = 0
+local files, rejected, rejected_total = 0, setmetatable({}, { __index = function() return 0 end }), 0
 local function find_lines(f, lines)
+    files = files + 1
     for l in io.lines(f) do
         for _, pat in ipairs(lines) do
             if l:find(pat) then
-                rejected = rejected + 1
+                rejected_total = rejected_total + 1
+                rejected[pat] = rejected[pat] + 1
                 return true
             end
         end
@@ -59,6 +60,13 @@ local rs_exclude = {
     "use%s+libc",
 }
 
+local types = setmetatable({}, {
+    __index = function(tbl, key)
+        local val = { accepted = 0, total = 0 }
+        tbl[key] = val
+        return val
+    end
+})
 for _, f in ipairs(arg) do
     local dir, type = f:match(".*/([^/]+)/[^.]+%.(.+)")
 
@@ -79,11 +87,31 @@ for _, f in ipairs(arg) do
             exclude, type = rs_exclude, "rs"
         end
 
+        types[dir].total = types[dir].total + (exclude and 1 or 0)
         if exclude and not find_lines(f, exclude) then
+            types[dir].accepted = types[dir].accepted + 1
             accept(f, dir, num, type)
         end
     end
 end
 
-print(("Rejected %d files."):format(rejected))
+-- process blacklist stats
+local blacklist = {}
+for i,v in pairs(rejected) do
+    table.insert(blacklist, {name = i, num = v})
+end
+table.sort(blacklist, function(a, b) return a.num > b.num end)
+
+print(("Accepted %d of %d files."):format(files - rejected_total, files))
+for i,v in pairs(types) do
+    print(("  %2d/%2d %s"):format(v.accepted, v.total, i))
+end
+
+print ""
+print "Blacklist stats"
+for _,v in ipairs(blacklist) do
+    print(("  %2d %s"):format(v.num, v.name))
+end
+
+print ""
 os.execute("./script/update_cargo.sh")
