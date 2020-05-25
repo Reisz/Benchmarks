@@ -1,4 +1,4 @@
-DATA := $(wildcard */*.bm)
+DATA := $(wildcard */*.bm) $(wildcard iperf-*.log)
 
 .PHONY: all clean
 

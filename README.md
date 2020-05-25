@@ -8,7 +8,7 @@ This project contains the following directories:
 - **cargo**&emsp;Empty cargo project used to compile dependencies (see [Rust](#rust))
 - **output**&emsp;Will contain the bencher binary as well as files to diff program output against (see [Benchmark Procedure](#benchmark-procedure))
 - **plots**&emsp;Scripts related to making plots using [gnuplot](http://www.gnuplot.info/) (see [Plotting](#plotting))
-- **scripts**&emsp;Various utility scripts (see [Selecting Programs](#selecting-programs), [Rust](#rust), [Benchmark Procedure](#benchmark-procedure))
+- **scripts**&emsp;Various utility scripts (see [Selecting Programs](#selecting-programs), [Rust](#rust), [Benchmark Procedure](#benchmark-procedure), [iPerf](#iperf))
 - **tmp**&emsp;Mounting directory for a tmpfs file-system to hold program output during benchmark runs (see [Benchmark Procedure](#benchmark-procedure))
 
 ## Setup
@@ -79,11 +79,20 @@ The `bencher` binary is responsible for most of the benchmark procedure. It will
     - Numerical diff (with absolute error)
     - Planned: Binary diff
 
+### iPerf
+This repository also contains utilities to facilitate a comparison between [ethox-iperf](https://github.com/HeroicKatora/ethox) and [iPerf3](https://iperf.fr/). The setup is intended for testing between two nodes, which are directly connected via a switch.
+
+To get the measurements, use `./scripts/iperf-helper.sh <ethox-iperf-executable> <device> <target-ip> benchmarks/iperf-<target-name>.log [client]`. Run two instances at the same time, but only one having the `client` argument. Always start the instance without the client argument first. `<target-name>` needs to correspond to the directory names used in the [Plotting Setup](#plotting-setup).
+
+**Example**
+1. Node 1: `./scripts/iperf-helper.sh "sudo ./iperf3" eth0 192.168.0.102/24 benchmarks/iperf-node2.log`
+2. Node 2: `./scripts/iperf-helper.sh ./iperf3 eth1 192.168.0.101/24 benchmarks/iperf-node1.log client`
+
 ## Plotting
 The scripts in the `plots` directory process and plot the raw data collected in [benchmarking](#benchmarking).
 
 ### Plotting setup
-The script `plots/prepare.lua` will work with paths in the format `<platform>/<type>/<number>.<lang>.bm`.
+The script `plots/prepare.lua` will work with benchmark results in the format `<platform>/<type>/<number>.<lang>.bm` and [iPerf](#iperf) logs as `<platform>/iperf-<target-name>.log`.
 
 These can be set up by extracting the tarballs generated from `make pack` (in the project root) inside `plots/<platform-name>`. The platform name is arbitrary, but will show up in the plots.
 
@@ -102,7 +111,7 @@ The `plots/prepare.lua` script should be called from the `plots` directory using
 Geometric mean is used, as it works correctly with normalized values (see [Flemming and Wallace](plots/paper4.pdf)).
 
 ### Gnuplot script
-The script `plots/all.plt` will create PDF plots for all benchmark types (currently hard-coded), as well as `output/plots/average.pdf` and `output/plots/fastest.pdf` from `output/data/combined.dat`.
+The script `plots/all.plt` will create PDF plots for all benchmark types (currently hard-coded), as well as `output/plots/average.pdf` and `output/plots/fastest.pdf` from `output/data/combined.dat` and `output/plots/iperf.pdf` from `output/data/iperf.dat`.
 
 ## Results
 The following plots show benchmark results for the HiFive Freedom Unleashed (`riscv`) and the Raspberry Pi 4 Model B (`pi`). The compiler versions are `9.1.0` for the HiFive and `8.3.0` for the Pi.

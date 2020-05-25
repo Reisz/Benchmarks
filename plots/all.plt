@@ -57,3 +57,9 @@ plot for [COL=2:4:2] 'output/data/combined.dat' using COL:xtic(1) title col
 
 set output "output/plots/fastest.png"
 plot for [COL=3:5:2] 'output/data/combined.dat' using COL:xtic(1) title col
+
+set yrange [0:800]
+set terminal pdf enhanced background rgb "white"
+set ylabel "Mbit/s"
+set output "output/plots/iperf.pdf"
+plot for [COL=2:3:1] 'output/data/iperf.dat' using COL:xtic(1) title col

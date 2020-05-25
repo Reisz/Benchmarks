@@ -1,10 +1,10 @@
-DATA := $(wildcard */*/*.bm)
+DATA := $(wildcard */iperf-*.log) $(wildcard */*/*.bm)
 
 .PHONY: all clean
 
 all: $(DATA)
 	@mkdir -p output/data
-	lua prepare.lua total */*/*.bm
+	lua prepare.lua total $(DATA)
 	@mkdir -p output/plots
 	gnuplot all.plt
 

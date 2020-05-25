@@ -57,7 +57,7 @@ local function sorted_pairs(tbl)
     end
 end
 
-local function write_dat(filename, lines, fill)
+local function write_dat(filename, lines)
     local file = io.open(filename, "w")
 
     file:write(table.concat(lines.title, " "), "\n")
@@ -72,62 +72,67 @@ end
 
 -- Program Start
 local data = setmetatable({}, autofill)
+local iperf = {}
 
 local plot = arg[1]
 table.remove(arg, 1)
 
 local all_numbers = setmetatable({}, autofill)
 for _, filename in ipairs(arg) do
-    local platform, bench, number = filename:match("([^/]+)/([^/]+)/(.+).bm")
+    if filename:match("iperf%-[^%.]+%.log$") then
+        table.insert(iperf, filename)
+    else
+        local platform, bench, number = filename:match("([^/]+)/([^/]+)/(.+).bm")
 
-    local lines = io.lines(filename)
+        local lines = io.lines(filename)
 
-    local title = lines()
-    local header = title and lines()
+        local title = lines()
+        local header = title and lines()
 
-    -- parse cpu frequency from title line
-    local frequency_ghz
-    if title then
-        local number, unit = title:match("%(%d+%s+x%s+(%S+)%s+([^,]+)")
-        frequency_ghz = number and frequencyToGhz(number, unit)
-    end
-
-    local ok = false
-    if header then
-        -- find index of requested column
-        local to_plot = 1
-        for column in header:gmatch("%S+") do
-            if column == plot then
-                ok = true
-                break
-            end
-
-            to_plot = to_plot + 1
+        -- parse cpu frequency from title line
+        local frequency_ghz
+        if title then
+            local number, unit = title:match("%(%d+%s+x%s+(%S+)%s+([^,]+)")
+            frequency_ghz = number and frequencyToGhz(number, unit)
         end
 
-        if ok then
-            local normalized_values = {}
+        local ok = false
+        if header then
+            -- find index of requested column
+            local to_plot = 1
+            for column in header:gmatch("%S+") do
+                if column == plot then
+                    ok = true
+                    break
+                end
 
-            -- collect values from requested column
-            for line in lines do
-                for i, v in enumerate(line:gmatch("%S+")) do
-                    if i == to_plot then
-                        table.insert(normalized_values, tonumber(v) * frequency_ghz)
-                        break
+                to_plot = to_plot + 1
+            end
+
+            if ok then
+                local normalized_values = {}
+
+                -- collect values from requested column
+                for line in lines do
+                    for i, v in enumerate(line:gmatch("%S+")) do
+                        if i == to_plot then
+                            table.insert(normalized_values, tonumber(v) * frequency_ghz)
+                            break
+                        end
                     end
                 end
+
+                data[bench][platform][number] = { geom_mean(normalized_values) }
+            else
+                print(string.format("Could not find column %q in %s", plot, filename))
             end
-
-            data[bench][platform][number] = { geom_mean(normalized_values) }
-        else
-            print(string.format("Could not find column %q in %s", plot, filename))
         end
-    end
 
-    if not ok then
-        data[bench][platform][number] = { 0, 0 }
-    elseif not rawget(all_numbers[bench], number) then
-        all_numbers[bench][number] = true
+        if not ok then
+            data[bench][platform][number] = { 0, 0 }
+        elseif not rawget(all_numbers[bench], number) then
+            all_numbers[bench][number] = true
+        end
     end
 end
 
@@ -173,3 +178,41 @@ end
 
 
 write_dat("output/data/combined.dat", lines)
+
+local iperf_results = setmetatable({}, autofill)
+for _,filename in ipairs(iperf) do
+    local platform, target = filename:match("([^/]+)/iperf%-([^%.]+)%.log")
+
+    local mode
+    for l in io.lines(filename) do
+        -- spaces intended here to prevent false positives
+        if l:find(" -s ", 1, true) then
+            mode = "server"
+        elseif l:find(" -c ", 1, true) then
+            mode = "client"
+        else
+            if mode == "server" then
+                local ethox_bps = l:match("(%d+)%s+Byte/sec")
+                if ethox_bps then
+                    local ethox_mbitps = ethox_bps / 125000
+                    iperf_results[target]["ethox-udp"] = ethox_mbitps
+                end
+            elseif mode == "client" then
+                local iperf_mbitps, udp = l:match("(%d+%.?%d*)%s+Mbits/sec[^%%]*(%%?).*sender")
+                if iperf_mbitps then
+                    local iperf = "iperf-" .. (#udp > 0 and "udp" or "tcp")
+                    iperf_results[platform][iperf] = iperf_mbitps
+                end
+            end
+        end
+    end
+end
+
+local lines = setmetatable({ title = { "iPerf" } }, autofill)
+for platform, results in sorted_pairs(iperf_results) do
+    table.insert(lines.title, string.format("%q", platform))
+    for mode, value in pairs(results) do
+        table.insert(lines[mode], string.format("%f", value))
+    end
+end
+write_dat("output/data/iperf.dat", lines)
