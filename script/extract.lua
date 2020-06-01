@@ -46,6 +46,7 @@ local c_exclude = {
     "#include%s*<emmintrin.h>",
     "#include%s*<xmmintrin.h>",
     "__builtin",
+    "typedef off_t off64_t", -- causes problems on raspberrypi (32-bit)
     "pcre_jit_exec", -- not available on hifive unleashed
     "#include%s*<omp.h>", -- TODO
 }
