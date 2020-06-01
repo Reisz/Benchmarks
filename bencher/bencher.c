@@ -132,6 +132,7 @@ int run_bench(const struct Input *input, FILE* outfile, char** argv, rlim_t time
 		"total  " CSV_SEP \
 		"user   " CSV_SEP \
 		"system " CSV_SEP \
+		"maxrss " CSV_SEP \
 		"minflt " CSV_SEP \
 		"majflt " CSV_SEP \
 		"swap   " CSV_SEP \
@@ -154,6 +155,10 @@ int run_bench(const struct Input *input, FILE* outfile, char** argv, rlim_t time
 	snprintf(decimals, 7, "%06ld", rusage.ru_stime.tv_usec);
 	assert(rusage.ru_stime.tv_sec < 1e4);
 	fprintf(outfile, "%3ld.%.3s" CSV_SEP, rusage.ru_stime.tv_sec, decimals);
+
+	// Maximum resident set size
+	assert(rusage.ru_maxrss < 1e8 && rusage.ru_maxrss < 1e8);
+	fprintf(outfile, "%7ld" CSV_SEP , rusage.ru_maxrss);
 
 	// Pagefaults
 	assert(rusage.ru_minflt < 1e8 && rusage.ru_majflt < 1e8);
