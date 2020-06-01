@@ -117,6 +117,3 @@ print "Blacklist stats"
 for _,v in ipairs(blacklist) do
     print(("  %2d %s"):format(v.num, v.name))
 end
-
-print ""
-os.execute("./script/update_cargo.sh")

@@ -21,8 +21,6 @@ Programs are selected from the extracted [zip of all programs](https://salsa.deb
 2. Edit the `c_exclude` and `rs_exclude` tables to blacklist [patterns](https://www.lua.org/manual/5.3/manual.html#6.4.1) that may not work in your testing environments (usually include / use statements)
 3. Run `lua script/extract.lua <path-to-benchmarks-directory> <path-to-extracted-zip>/*/*`
 
-This script will also automatically perform the Rust setup as described in the next section.
-
 ### Rust
 To setup Rust compilation run: `lua script/update_cargo.sh`
 
