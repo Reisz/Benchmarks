@@ -67,6 +67,8 @@ local types = setmetatable({}, {
         return val
     end
 })
+local langs = { c = 0, cpp = 0, rs = 0 }
+
 for _, f in ipairs(arg) do
     local dir, type = f:match(".*/([^/]+)/[^.]+%.(.+)")
 
@@ -80,10 +82,13 @@ for _, f in ipairs(arg) do
 
         local exclude
         if type == "gcc" then
+            langs.c = langs.c + 1
             exclude, type = c_exclude, "c"
         elseif type == "gpp" then
+            langs.cpp = langs.cpp + 1
             exclude, type = c_exclude, "cpp"
         elseif type == "rust" then
+            langs.rs = langs.rs + 1
             exclude, type = rs_exclude, "rs"
         end
 
@@ -102,7 +107,7 @@ for i,v in pairs(rejected) do
 end
 table.sort(blacklist, function(a, b) return a.num > b.num end)
 
-print(("Accepted %d of %d files."):format(files - rejected_total, files))
+print(("Accepted %d of %d files. (%d C, %d C++, %d Rust)"):format(files - rejected_total, files, langs.c, langs.cpp, langs.rs))
 for i,v in pairs(types) do
     print(("  %2d/%2d %s"):format(v.accepted, v.total, i))
 end
