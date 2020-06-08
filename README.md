@@ -11,6 +11,19 @@ This project contains the following directories:
 - **scripts**&emsp;Various utility scripts (see [Selecting Programs](#selecting-programs), [Rust](#rust), [Benchmark Procedure](#benchmark-procedure), [iPerf](#iperf))
 - **tmp**&emsp;Mounting directory for a tmpfs file-system to hold program output during benchmark runs (see [Benchmark Procedure](#benchmark-procedure))
 
+## Hardware
+These benchmarks exist to evaluate the performance of the [HiFive Unleashed](https://www.sifive.com/boards/hifive-unleashed) developer board for the [Freedom U540 SoC](https://www.sifive.com/chip-designer#fu540). A [Raspberry Pi 4B](https://www.raspberrypi.org/products/raspberry-pi-4-model-b/) is used as a baseline for the measurements.
+
+### HiFive Unleashed
+The Freedom U540 SoC has 4 `RV64GC` application cores and 1 `RV64IMAC` management core. Each application core contains 32 KiB each of instruction and data cache, while the management core uses 16 KiB instruction cache and 8 KiB of tightly integrated memory. 2 MB of L2 cache then connect to 8 GB of DDR4 ram. All of these memory layers also use ECC.
+
+Operating system and programs are stored on a Micro-SD card.
+
+### Raspberry Pi 4B
+The BCM2711 on the Raspberry Pi has 4 ARM Cortex-A72 cores. They each contain 48 KiB of instruction cache and 32 KiB of data cache. 1 MB of L2 cache then connects to 4 GB of LPDDR4 ram.
+
+Operating system and programs are stored on a Micro-SD card.
+
 ## Setup
 Some files in this repository are a result of executing the following steps. These files are currently configured for the HiFive Freedom Unleashed and the RaspberryPi 4B.
 
