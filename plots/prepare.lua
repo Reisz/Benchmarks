@@ -181,30 +181,72 @@ write_dat("output/data/combined.dat", lines)
 
 local iperf_results = setmetatable({}, autofill)
 for _,filename in ipairs(iperf) do
-    local platform, target = filename:match("([^/]+)/iperf%-([^%.]+)%.log")
+    local platform, target, offload = filename:match("([^/]+)/iperf%-([^%-]+)(%-?[^%.]*)%.log")
+    offload = offload or ""
 
-    local mode
+    local prog, mode
     for l in io.lines(filename) do
-        -- spaces intended here to prevent false positives
-        if l:find(" -s ", 1, true) then
-            mode = "server"
-        elseif l:find(" -c ", 1, true) then
-            mode = "client"
+        if l:find("iperf ", 1, true) then
+            if l:find("-s", 1, true) then
+                -- iperf2 server measures ethox tcp client
+                prog, mode = "ethox", "tcp"
+            elseif not l:find("Done", 1, true) then
+                error("Unexpected non-server iperf2 call.")
+            end
+        elseif l:find("iperf3 ", 1, true) then
+            if l:find("-s", 1, true) then
+                if l:find("--udp", 1, true) then
+                    -- ethox udp server measures ethox udp client
+                    prog, mode = "ethox", "udp"
+                elseif l:find("--tcp", 1, true) then
+                    error("Unexpected ethox-iperf tcp server call.")
+                end
+                -- regular iperf3 is measured at client side
+            elseif l:find("-c", 1, true) then
+                if l:find("-u") then
+                    -- iperf3 udp client measurement
+                    prog, mode = "iperf", "udp"
+                elseif not l:find("--", 1, true) then -- exclude exthox calls
+                    -- iperf3 tcp client measurement
+                    prog, mode = "iperf", "tcp"
+                end
+                -- ethox is measured at client
+            end
         else
-            if mode == "server" then
+            if prog == "ethox" and mode == "udp" then
                 local ethox_bps = l:match("(%d+)%s+Byte/sec")
                 if ethox_bps then
                     local ethox_mbitps = ethox_bps / 125000
-                    iperf_results[target]["ethox-udp"] = ethox_mbitps
+                    iperf_results[target]["ethox-" .. mode .. offload] = ethox_mbitps
                 end
-            elseif mode == "client" then
-                local iperf_mbitps, udp = l:match("(%d+%.?%d*)%s+Mbits/sec[^%%]*(%%?).*sender")
+            else
+                local iperf_mbitps = l:match("(%d+%.?%d*)%s+Mbits/sec")
                 if iperf_mbitps then
-                    local iperf = "iperf-" .. (#udp > 0 and "udp" or "tcp")
-                    iperf_results[platform][iperf] = iperf_mbitps
+                    iperf_results[platform][prog .. "-" .. mode .. offload] = iperf_mbitps
                 end
             end
         end
+
+        -- if l:find(" -s ", 1, true) then
+        --     mode = "server"
+        --     get_prot(l)
+        --     print(l)
+        --     print(mode, prot)
+        -- elseif l:find(" -c ", 1, true) then
+        --     mode = "client"
+        --     get_prot(l)
+        --     print(l)
+        --     print(mode, prot)
+        -- else
+        --     if mode == "server" then
+        --     elseif mode == "client" then
+        --         local iperf_mbitps, udp = l:match("(%d+%.?%d*)%s+Mbits/sec[^%%]*(%%?).*sender")
+        --         if iperf_mbitps then
+        --             local iperf = "iperf-" .. (#udp > 0 and "udp" or "tcp") .. offload
+        --             iperf_results[platform][iperf] = iperf_mbitps
+        --         end
+        --     end
+        -- end
     end
 end
 
