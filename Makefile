@@ -62,6 +62,8 @@ TIMEOUT := -t 300
 default: $(BINARIES)
 cross: riscv64.run.tar.gz armv7l.run.tar.gz
 bench: $(BENCHES)
+pack:
+	$(MAKE) -C benchmarks
 
 # Reduced settings for testing
 bench-test: FANNKUCH    := 7
