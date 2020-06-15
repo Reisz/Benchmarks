@@ -19,7 +19,7 @@ TMPDST="${TMPDST%/*}"
 PORT=5001
 UL=1460
 TL=131072 # 128 KiB
-N=10740000 #0 # 1 GiB
+N=104857600 # 100 MiB
 
 SLEEP_TIME=5
 
@@ -58,8 +58,8 @@ function iperf-server {
 
 function iperf-client {
     if [ `uname -m` = "armv7l" ]; then
-        echo "$ETHOX_TCP -c $OTHER $PORT -l $TL -n $(($N / 10)) --tcp"
-        $ETHOX_TCP -c $OTHER $PORT -l $TL -n $(($N / 10)) --tcp
+        echo "$ETHOX_TCP -c $OTHER $PORT -l $TL -n $N --tcp"
+        $ETHOX_TCP -c $OTHER $PORT -l $TL -n $N --tcp
     else
         echo "$ETHOX_TCP -c $OTHER $PORT -l $TL -n $N --tcp"
         $ETHOX_TCP -c $OTHER $PORT -l $TL -n $N --tcp
