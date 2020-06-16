@@ -116,7 +116,10 @@ for _, filename in ipairs(arg) do
                 for line in lines do
                     for i, v in enumerate(line:gmatch("%S+")) do
                         if i == to_plot then
-                            table.insert(normalized_values, tonumber(v) * frequency_ghz)
+                            v = tonumber(v)
+                            if v then
+                                table.insert(normalized_values, v * frequency_ghz)
+                            end
                             break
                         end
                     end
